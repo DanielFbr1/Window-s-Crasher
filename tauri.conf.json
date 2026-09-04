@@ -8,7 +8,7 @@
   },
   "package": {
     "productName": "Windows Crasher",
-    "version": "1.5.0"
+    "version": "1.6.0"
   },
   "tauri": {
     "allowlist": {
@@ -51,7 +51,7 @@
         "fullscreen": false,
         "height": 860,
         "resizable": true,
-        "title": "Windows Crasher - v1.5.0",
+        "title": "Windows Crasher - v1.6.0",
         "width": 1280,
         "minWidth": 1000,
         "minHeight": 700

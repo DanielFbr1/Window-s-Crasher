@@ -2,6 +2,37 @@
 
 Este documento mantiene un registro cronológico de todas las versiones, modificaciones y mejoras implementadas en el proyecto para facilitar el contexto y seguimiento a usuarios y agentes.
 
+## [v1.6.0] - 2026-09-04
+### Mecánica Razor's Edge (Balance Habilidad vs Hardware), Botón Restar Pestañas, Osciloscopio Central y Recalibración S Tier
+- **Balance Competitivo entre Dispositivos Potentes y Modestos ("Razor's Edge")**:
+  - **Problema resuelto**: En versiones previas, una máquina con 64GB de RAM y 16 núcleos podía abrir 80 pestañas sin inmutarse, mientras que un equipo con 8GB colapsaba rápidamente.
+  - **Solución mecánica ("El Filo de la Navaja")**: Se premia la **proximidad porcentual al límite mortal del Watchdog (92% de RAM)** mediante un multiplicador dinámico `Razor's Edge` (hasta **+3.5x adicional**):
+    - Al 80% RAM: +1.0x (normal)
+    - Al 85% RAM: +1.5x
+    - Al 88% RAM: +2.2x
+    - Al 90% - 91.9% RAM: **+3.5x (Zona de Máximo Riesgo / Filo)**
+  - Un jugador en un PC de 8GB llega con agilidad a la franja del 90.0% - 91.8% de RAM (requiriendo apenas 12-18 pestañas más multiplicadores), obteniendo el multiplicador de flujo máximo (+3.5x Razor's Edge + Racha de Sobrecarga). Un jugador con 64GB que juegue seguro al 40% de RAM solo recibe multiplicador x1.0 y no podrá alcanzar los Tiers superiores a menos que asuma el mismo riesgo letal.
+- **Nuevo Botón `-1 PESTAÑA` y Micro-gestión Táctica**:
+  - Se añade el botón de acción rápida `−1 PESTAÑA` (teclas de acceso rápido `Backspace` y `-`).
+  - Permite liberar buffers de memoria chunk a chunk (`ramEater.releaseChunk()`) y desintegrar ventanas virtuales en el simulador con partículas anaranjadas.
+  - Otorga al jugador la capacidad de "surfear la ola" al 91.5% de RAM: si la memoria amenaza con tocar el 92% y activar el BSOD, el jugador puede pulsar rítmicamente `-1 Pestaña` para salvar el sistema en el último segundo sin perder su racha de puntos.
+- **Reorganización Espacial Ergonómica del Dashboard**:
+  - **Osciloscopio en el Panel Central**: El osciloscopio en tiempo real (`#history-canvas`, 15s a 4 Hz con CPU, RAM y umbral del 92%) se traslada a la **Columna Central**, ubicado justo debajo de los medidores de telemetría analógica y encima del simulador visual del caos (`#chaos-canvas`).
+  - **Diagnóstico del Sistema en la Columna Izquierda**: El bloque de diagnóstico (`#telemetry-cores`, `#telemetry-freeram`, `#telemetry-allocram`, etc.) se reubica en la columna izquierda donde antes estaban los botones de pestañas, consolidando toda la información de monitorización de hardware en un solo lateral.
+  - **Todos los Botones Accionables en la Columna Derecha**: Se agrupan todos los controles interactivos en la extrema derecha:
+    - Rejilla superior compacta (`.tab-actions-split-grid`) con `+1 PESTAÑA`, `−1 PESTAÑA` y `+10 PESTAÑAS`.
+    - Bloque de multiplicadores minimalistas (`CPU MELTER`, `RAM EATER`, `GPU BURNER`).
+    - Botón de Pánico de Emergencia anclado al pie de la columna derecha.
+- **Recalibración Rigurosa del Sistema de Puntuación (S Tier Digno)**:
+  - Se corrigen los umbrales de rango para evitar que el S Tier sea trivial:
+    - **TIER S (DESTRUCTOR DE SILICIO)**: Requiere $\ge$ 1,800 pts/s de tasa media, $\ge$ 30s de supervivencia bajo estrés crítico y $\ge$ 80,000 puntos (o $\ge$ 160,000 pts totales).
+    - **TIER A (OVERCLOCKER MAESTRO)**: Requiere $\ge$ 800 pts/s, $\ge$ 15s en peligro y $\ge$ 35,000 pts.
+    - **TIER B (STRESS TESTER)**: Requiere $\ge$ 350 pts/s y $\ge$ 12,000 pts.
+    - **TIER C (OPERADOR CAUTELOSO)**: Requiere $\ge$ 100 pts/s y $\ge$ 3,000 pts.
+    - **TIER D (INACTIVO / SIN ESTRÉS)**: Menos de 100 pts/s.
+- **Actualización de Versión**:
+  - Sincronización a `v1.6.0` en todas las pantallas, configuraciones de Tauri/Cargo, atajos y pie de página.
+
 ---
 
 ## [v1.5.0] - 2026-09-04

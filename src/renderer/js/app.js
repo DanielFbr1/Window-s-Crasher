@@ -1,13 +1,14 @@
-// Controlador principal del juego y lógica de benchmarking - Windows Crasher v1.5.0
+// Controlador principal del juego y lógica de benchmarking - Windows Crasher v1.6.0
 class WindowsCrasherApp {
   constructor() {
-    this.appVersion = 'v1.5.0';
+    this.appVersion = 'v1.6.0';
     this.score = 0;
     this.tabsCount = 0;
     this.peakTabs = 0;
     this.baseMultiplier = 1.0;
     this.currentRiskMultiplier = 1.0;
     this.streakMultiplier = 1.0;
+    this.razorEdgeMultiplier = 1.0;  // Multiplicador de habilidad al surfear el límite del 92%
     this.riskZoneName = '';
     this.gameStartTime = Date.now();
     this.isGameOver = false;
@@ -116,6 +117,15 @@ class WindowsCrasherApp {
       btnAddTab.addEventListener('click', () => {
         this.soundFx.playClick();
         this.addTabs(1);
+      });
+    }
+
+    // Botón −1 Pestaña (Alivio táctico de emergencia)
+    const btnRemoveTab = document.getElementById('btn-remove-tab');
+    if (btnRemoveTab) {
+      btnRemoveTab.addEventListener('click', () => {
+        this.soundFx.playClick();
+        this.removeTabs(1);
       });
     }
 
@@ -236,6 +246,12 @@ class WindowsCrasherApp {
           this.soundFx.playClick();
           this.addTabs(1);
         }
+      } else if (e.code === 'Backspace' || e.key === '-') {
+        e.preventDefault();
+        if (!this.isGameOver) {
+          this.soundFx.playClick();
+          this.removeTabs(1);
+        }
       } else if (e.key === '1') {
         this.toggleCpuMelter();
       } else if (e.key === '2') {
@@ -328,6 +344,26 @@ class WindowsCrasherApp {
 
     this.updateAllocatedRamUI();
     this.checkMilestones();
+  }
+
+  removeTabs(count = 1) {
+    if (this.isGameOver || this.tabsCount <= 0) return;
+
+    const actualRemove = Math.min(this.tabsCount, count);
+    this.tabsCount -= actualRemove;
+
+    const tabCountEl = document.getElementById('tabs-count-display');
+    if (tabCountEl) tabCountEl.textContent = this.tabsCount;
+
+    // Liberar memoria física asignada (descompresión de emergencia)
+    this.ramEater.releaseChunk(actualRemove);
+
+    // Eliminar ventanas virtuales del canvas de caos con efecto de desintegración
+    if (this.tabVisualizer) {
+      this.tabVisualizer.removeTabs(actualRemove);
+    }
+
+    this.updateAllocatedRamUI();
   }
 
   toggleCpuMelter() {
@@ -460,12 +496,15 @@ class WindowsCrasherApp {
     const multDisplay = document.getElementById('multiplier-display');
     if (!multDisplay) return;
 
-    const totalDisplayMult = (this.baseMultiplier * this.currentRiskMultiplier).toFixed(1);
-    if (this.riskZoneName) {
-      multDisplay.textContent = `x${totalDisplayMult} [${this.riskZoneName}]`;
+    const totalCombinedMult = (this.baseMultiplier * this.currentRiskMultiplier * this.razorEdgeMultiplier).toFixed(1);
+    if (this.razorEdgeMultiplier > 1.2) {
+      multDisplay.textContent = `x${totalCombinedMult} [AL FILO: x${this.razorEdgeMultiplier.toFixed(1)}]`;
+      multDisplay.className = 'multiplier-tag-header multiplier-danger';
+    } else if (this.riskZoneName) {
+      multDisplay.textContent = `x${totalCombinedMult} [${this.riskZoneName}]`;
       multDisplay.className = 'multiplier-tag-header multiplier-danger';
     } else {
-      multDisplay.textContent = `x${totalDisplayMult}`;
+      multDisplay.textContent = `x${totalCombinedMult}`;
       multDisplay.className = 'multiplier-tag-header';
     }
   }
@@ -477,7 +516,7 @@ class WindowsCrasherApp {
       const ram = this.currentMetrics.ramPercent;
       const cpu = this.currentMetrics.cpuPercent;
 
-      // Evaluación dinámica del multiplicador de riesgo
+      // Evaluación dinámica del multiplicador de riesgo base
       if (ram >= 88 || cpu >= 95) {
         this.currentRiskMultiplier = 2.5;
         this.riskZoneName = 'ZONA CRÍTICA';
@@ -487,6 +526,19 @@ class WindowsCrasherApp {
       } else {
         this.currentRiskMultiplier = 1.0;
         this.riskZoneName = '';
+      }
+
+      // MECÁNICA DE HABILIDAD Y BALANCE DE HARDWARE: RAZOR'S EDGE (Al Filo del Precipicio)
+      // Cuanto más cerca esté la RAM del umbral de muerte del 92% (o CPU de 98%),
+      // mayor es el multiplicador exponencial de habilidad (hasta x3.5 adicional).
+      if (ram >= 89.0 && ram < 92.0) {
+        const proximity = (ram - 89.0) / 3.0;
+        this.razorEdgeMultiplier = 1.0 + (proximity * 2.5);
+      } else if (cpu >= 94.0 && cpu < 98.0) {
+        const proximity = (cpu - 94.0) / 4.0;
+        this.razorEdgeMultiplier = 1.0 + (proximity * 2.0);
+      } else {
+        this.razorEdgeMultiplier = 1.0;
       }
 
       this.updateMultiplierUI();
@@ -528,11 +580,17 @@ class WindowsCrasherApp {
       if (this.tabsCount === 0 && activeMultCount === 0) {
         this.currentFlowRate = 0;
       } else {
-        // Densidad de Estrés no lineal
+        // Densidad de Estrés no lineal calibrada para Tier S exigente
         const loadNorm = (cpu + ram) / 100;
-        const stressDensityFactor = Math.pow(Math.max(0.18, loadNorm), 1.8);
-        const baseActiveIntensity = (this.tabsCount * 22) + (activeMultCount * 42);
-        const totalFlowRate = baseActiveIntensity * stressDensityFactor * this.baseMultiplier * this.currentRiskMultiplier * this.streakMultiplier * this.scoreFreqMultiplier;
+        const stressDensityFactor = Math.pow(Math.max(0.15, loadNorm), 1.7);
+        const baseActiveIntensity = (this.tabsCount * 18) + (activeMultCount * 36);
+        const totalFlowRate = baseActiveIntensity * 
+                              stressDensityFactor * 
+                              this.baseMultiplier * 
+                              this.currentRiskMultiplier * 
+                              this.streakMultiplier * 
+                              this.razorEdgeMultiplier * 
+                              this.scoreFreqMultiplier;
 
         this.currentFlowRate = Math.round(totalFlowRate);
         if (this.currentFlowRate > this.peakFlowRate) {
@@ -654,36 +712,37 @@ class WindowsCrasherApp {
     return 'CRITICAL_HARDWARE_LIMIT_EXCEEDED';
   }
 
-  // Evaluación objetiva de Tiers basada en intensidad de estrés (pts/s), pestañas y riesgo
+  // Evaluación objetiva de Tiers basada en intensidad de estrés (pts/s), pestañas y habilidad
   evaluatePlayerRank(finalScore, peakTabs, survivalSec, totalStressSec, avgRate) {
     // Si el jugador estuvo AFK o inactivo sin abrir apenas pestañas ni generar estrés
-    if (peakTabs === 0 && avgRate < 25) {
+    if (peakTabs <= 1 && avgRate < 50) {
       return { tier: 'TIER D', title: 'INACTIVO / SIN ESTRÉS', tierClass: 'tier-d' };
     }
 
-    // TIER S: Destructor de Silicio
-    // Logrado con tasa extrema (>=600 pts/s) o sosteniendo 30+ pestañas bajo estrés crítico
-    if (avgRate >= 600 || (peakTabs >= 30 && totalStressSec >= 25) || (finalScore >= 50000 && avgRate >= 350)) {
+    // TIER S: Destructor de Silicio (Auténtica proeza de riesgo extremo y maestría)
+    // Exigente: requiere tasa promedio masiva (>=1,800 pts/s), al menos 30s de supervivencia en zona de peligro
+    // y puntuación alta (>=80,000 pts)
+    if ((avgRate >= 1800 && totalStressSec >= 30 && finalScore >= 80000) || (finalScore >= 160000 && avgRate >= 1400)) {
       return { tier: 'TIER S', title: 'DESTRUCTOR DE SILICIO', tierClass: 'tier-s' };
     }
 
-    // TIER A: Overclocker Maestro
-    if (avgRate >= 260 || (peakTabs >= 18 && totalStressSec >= 12) || (finalScore >= 18000 && avgRate >= 150)) {
+    // TIER A: Overclocker Maestro (Muy buen manejo del hardware y riesgo considerable)
+    if ((avgRate >= 800 && totalStressSec >= 15 && finalScore >= 35000) || (finalScore >= 60000 && avgRate >= 600)) {
       return { tier: 'TIER A', title: 'OVERCLOCKER MAESTRO', tierClass: 'tier-a' };
     }
 
-    // TIER B: Stress Tester
-    if (avgRate >= 90 || (peakTabs >= 10 && totalStressSec >= 5) || (finalScore >= 6000 && avgRate >= 50)) {
+    // TIER B: Stress Tester (Uso activo de multiplicadores y pestañas)
+    if (avgRate >= 350 || (peakTabs >= 10 && finalScore >= 15000) || finalScore >= 25000) {
       return { tier: 'TIER B', title: 'STRESS TESTER', tierClass: 'tier-b' };
     }
 
-    // TIER C: Operador Cauteloso
-    if (avgRate >= 20 || peakTabs >= 3 || finalScore >= 1000) {
+    // TIER C: Operador Cauteloso (Poco riesgo o colapso rápido sin exprimir el sistema)
+    if (avgRate >= 80 || peakTabs >= 3 || finalScore >= 3000) {
       return { tier: 'TIER C', title: 'OPERADOR CAUTELOSO', tierClass: 'tier-c' };
     }
 
-    // TIER D: Colapso Temprano
-    return { tier: 'TIER D', title: 'COLAPSO TEMPRANO', tierClass: 'tier-d' };
+    // TIER D: Colapso Prematuro / Inactivo
+    return { tier: 'TIER D', title: 'COLAPSO PREMATURO', tierClass: 'tier-d' };
   }
 
   triggerGameOver(reason, metrics) {
@@ -845,6 +904,7 @@ class WindowsCrasherApp {
     this.baseMultiplier = 1.0;
     this.currentRiskMultiplier = 1.0;
     this.streakMultiplier = 1.0;
+    this.razorEdgeMultiplier = 1.0;
     this.riskZoneName = '';
     this.gameStartTime = Date.now();
     this.isGameOver = false;

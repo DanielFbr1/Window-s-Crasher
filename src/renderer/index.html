@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Windows Crasher - v1.5.0</title>
+  <title>Windows Crasher - v1.6.0</title>
   <link rel="stylesheet" href="styles/dashboard.css" />
 </head>
 <body>
@@ -13,7 +13,7 @@
     <div class="logo-container">
       <span class="logo-icon">⚡</span>
       <h1>WINDOWS CRASHER</h1>
-      <span class="version-badge" id="app-version-badge">v1.5.0</span>
+      <span class="version-badge" id="app-version-badge">v1.6.0</span>
     </div>
 
     <div class="header-status">
@@ -46,7 +46,7 @@
 
   <!-- Panel Principal de 3 Columnas -->
   <main>
-    <!-- Columna Izquierda: Acciones, Puntuación, Osciloscopio y Taller -->
+    <!-- Columna Izquierda: Sesión, Puntuación, Diagnóstico del Sistema e Hitos -->
     <section class="card">
       <div class="card-title">
         <span>Sesión &amp; Benchmark</span>
@@ -87,15 +87,31 @@
         </div>
       </div>
 
-      <!-- Botones de Clic de Pestañas -->
-      <button id="btn-add-tab" class="action-btn-huge">
-        <span>+1 PESTAÑA (<span id="mb-per-tab-text">64</span>MB)</span>
-        <span class="btn-hotkey-hint">[ESPACIO]</span>
-      </button>
+      <!-- Diagnóstico del Sistema (Reubicado en Columna Izquierda) -->
+      <div class="card-title section-title-spacing">
+        <span>Diagnóstico del Sistema</span>
+      </div>
 
-      <button id="btn-add-10-tabs" class="btn-secondary">
-        +10 PESTAÑAS EN RÁFAGA
-      </button>
+      <div class="telemetry-row">
+        <span class="telemetry-label">Núcleos Lógicos:</span>
+        <span class="telemetry-val" id="telemetry-cores">--</span>
+      </div>
+      <div class="telemetry-row">
+        <span class="telemetry-label">Memoria Libre SO:</span>
+        <span class="telemetry-val" id="telemetry-freeram">--</span>
+      </div>
+      <div class="telemetry-row">
+        <span class="telemetry-label">RAM Asignada por Juego:</span>
+        <span class="telemetry-val text-cyan" id="allocated-ram-display">0 MB</span>
+      </div>
+      <div class="telemetry-row">
+        <span class="telemetry-label">Jitter del Watchdog:</span>
+        <span class="telemetry-val" id="telemetry-delta">250 ms</span>
+      </div>
+      <div class="telemetry-row">
+        <span class="telemetry-label">Protección Kernel Anti-Freeze:</span>
+        <span class="telemetry-val text-green">ACTIVA</span>
+      </div>
 
       <!-- Hitos de Sobrecarga (Desbloqueo por maestría y estrés sostenido) -->
       <div class="milestones-section">
@@ -130,7 +146,7 @@
       </div>
     </section>
 
-    <!-- Columna Central: Agujas Analógicas y Viewport de Animaciones -->
+    <!-- Columna Central: Agujas Analógicas, Osciloscopio y Simulador de Caos -->
     <section class="card">
       <div class="card-title">
         <span>Telemetría de Recursos en Tiempo Real</span>
@@ -182,7 +198,20 @@
         ¡ALERTA! CPU SOSTENIDA AL 98%+
       </div>
 
-      <!-- NUEVO: Viewport de Animación de Ventanas y Caos en Tiempo Real -->
+      <!-- Osciloscopio Reubicado (Debajo de telemetría y encima del simulador) -->
+      <div class="card-title section-title-spacing">
+        <span>Osciloscopio (15s)</span>
+        <div class="chart-legend-group">
+          <span class="legend-cpu">■ CPU</span>
+          <span class="legend-ram">■ RAM</span>
+          <span class="legend-limit">-- 92%</span>
+        </div>
+      </div>
+      <div class="chart-container-center">
+        <canvas id="history-canvas"></canvas>
+      </div>
+
+      <!-- Viewport de Animación de Ventanas y Caos en Tiempo Real -->
       <div class="card-title section-title-spacing">
         <span>Simulador de Ventanas &amp; Caos</span>
         <span id="chaos-status-text" class="chaos-badge">ESTABLE</span>
@@ -192,25 +221,32 @@
       </div>
     </section>
 
-    <!-- Columna Derecha: Osciloscopio, Multiplicadores Compactos, Diagnóstico y Pánico -->
+    <!-- Columna Derecha: Todos los Botones Accionables (+1, -1, +10, Multiplicadores y Pánico) -->
     <section class="card">
       <div class="card-title">
-        <span>Osciloscopio (15s)</span>
-        <div class="chart-legend-group">
-          <span class="legend-cpu">■ CPU</span>
-          <span class="legend-ram">■ RAM</span>
-          <span class="legend-limit">-- 92%</span>
-        </div>
+        <span>Panel de Control &amp; Carga</span>
       </div>
 
-      <!-- Canvas del Osciloscopio (Reubicado en Columna Derecha) -->
-      <div class="chart-container-right">
-        <canvas id="history-canvas"></canvas>
+      <!-- Acciones de Pestañas (+1 y -1 en rejilla balanceada) -->
+      <div class="tab-actions-split-grid">
+        <button id="btn-add-tab" class="action-btn-huge action-btn-add">
+          <span>+1 PESTAÑA (<span id="mb-per-tab-text">64</span>MB)</span>
+          <span class="btn-hotkey-hint">[ESPACIO]</span>
+        </button>
+
+        <button id="btn-remove-tab" class="action-btn-huge action-btn-remove" title="Liberar memoria de emergencia y reducir presión del Watchdog">
+          <span>−1 PESTAÑA (ALIVIO)</span>
+          <span class="btn-hotkey-hint">[RETROCESO]</span>
+        </button>
       </div>
 
-      <!-- Multiplicadores Pesados Compactos (Minimalistas: solo nombre y x) -->
+      <button id="btn-add-10-tabs" class="btn-secondary">
+        +10 PESTAÑAS EN RÁFAGA
+      </button>
+
+      <!-- Multiplicadores Pesados Compactos -->
       <div class="card-title section-title-spacing">
-        <span>Multiplicadores</span>
+        <span>Multiplicadores de Sobrecarga</span>
       </div>
       <div class="multipliers-compact-grid">
         <button class="multiplier-compact-btn" id="btn-toggle-cpu" title="Atajo: Tecla 1">
@@ -230,46 +266,27 @@
         </button>
       </div>
 
-      <div class="card-title section-title-spacing">
-        <span>Diagnóstico del Sistema</span>
+      <!-- Protocolo de Emergencia y Botón de Pánico -->
+      <div class="panic-container-section">
+        <div class="card-title section-title-spacing">
+          <span>Protocolo de Emergencia</span>
+        </div>
+        <button id="btn-panic" class="btn-panic" title="Atajo: Tecla Escape">
+          <span>🛑 ABORTO DE EMERGENCIA</span>
+          <span class="btn-hotkey-hint">[ESC]</span>
+        </button>
       </div>
-
-      <div class="telemetry-row">
-        <span class="telemetry-label">Núcleos Lógicos:</span>
-        <span class="telemetry-val" id="telemetry-cores">--</span>
-      </div>
-      <div class="telemetry-row">
-        <span class="telemetry-label">Memoria Libre SO:</span>
-        <span class="telemetry-val" id="telemetry-freeram">--</span>
-      </div>
-      <div class="telemetry-row">
-        <span class="telemetry-label">RAM Asignada por Juego:</span>
-        <span class="telemetry-val text-cyan" id="allocated-ram-display">0 MB</span>
-      </div>
-      <div class="telemetry-row">
-        <span class="telemetry-label">Jitter del Watchdog:</span>
-        <span class="telemetry-val" id="telemetry-delta">250 ms</span>
-      </div>
-      <div class="telemetry-row">
-        <span class="telemetry-label">Protección Kernel Anti-Freeze:</span>
-        <span class="telemetry-val text-green">ACTIVA</span>
-      </div>
-
-      <!-- Botón de Pánico de Emergencia -->
-      <button id="btn-panic" class="btn-panic" title="Atajo: Tecla Escape">
-        <span>🛑 ABORTO DE EMERGENCIA</span>
-        <span class="btn-hotkey-hint">[ESC]</span>
-      </button>
     </section>
   </main>
 
   <!-- Pie de página con versión explícita y atajos -->
   <footer>
     <div>
-      Windows Crasher Engine • Versión <strong class="text-cyan" id="footer-version-text">v1.5.0</strong>
+      Windows Crasher Engine • Versión <strong class="text-cyan" id="footer-version-text">v1.6.0</strong>
     </div>
     <div class="footer-shortcuts">
       <span><span class="shortcut-pill">ESPACIO</span> +1 Pestaña</span>
+      <span><span class="shortcut-pill">BACKSPACE</span> -1 Pestaña</span>
       <span><span class="shortcut-pill">1-3</span> Cargas</span>
       <span><span class="shortcut-pill">M</span> Audio</span>
       <span><span class="shortcut-pill">ESC</span> Pánico</span>

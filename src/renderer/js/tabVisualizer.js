@@ -1,4 +1,4 @@
-// Motor de renderizado visual interactivo de procesos, pestañas y multiplicadores - v1.5.0
+// Motor de renderizado visual interactivo de procesos, pestañas y multiplicadores - v1.6.0
 class SystemChaosVisualizer {
   constructor(canvasElement) {
     this.canvas = canvasElement;
@@ -42,8 +42,9 @@ class SystemChaosVisualizer {
   }
 
   spawnTabs(count = 1) {
-    const w = this.width || 300;
-    const h = this.height || 180;
+    if (!this.canvas) return;
+    const w = this.width;
+    const h = this.height;
     const toSpawn = Math.min(count, 8); // Límite por ráfaga para elegancia
 
     for (let i = 0; i < toSpawn; i++) {
@@ -74,6 +75,26 @@ class SystemChaosVisualizer {
     // Mantener un máximo de 28 ventanas en el canvas para rendimiento limpio
     if (this.windows.length > 28) {
       this.windows.splice(0, this.windows.length - 28);
+    }
+  }
+
+  removeTabs(count = 1) {
+    for (let i = 0; i < count; i++) {
+      if (this.windows.length > 0) {
+        const removed = this.windows.pop();
+        for (let p = 0; p < 6; p++) {
+          this.particles.push({
+            x: (removed.x || 50) + (removed.w || 100) / 2,
+            y: (removed.y || 50) + (removed.h || 60) / 2,
+            vx: (Math.random() - 0.5) * 5,
+            vy: (Math.random() - 0.5) * 5,
+            radius: 2 + Math.random() * 2,
+            color: '#ffb700',
+            alpha: 1.0,
+            decay: 0.06
+          });
+        }
+      }
     }
   }
 

@@ -27,6 +27,19 @@ class RamEater {
     }
   }
 
+  // Liberar uno o más bloques de memoria para descompresión táctica de emergencia
+  releaseChunk(count = 1) {
+    let releasedBytes = 0;
+    for (let i = 0; i < count; i++) {
+      if (this.buffers.length > 0) {
+        const buf = this.buffers.pop();
+        this.totalAllocatedBytes = Math.max(0, this.totalAllocatedBytes - buf.byteLength);
+        releasedBytes += buf.byteLength;
+      }
+    }
+    return Math.round(releasedBytes / (1024 * 1024));
+  }
+
   // Liberar toda la memoria retenida
   releaseAll() {
     const freedMB = this.getAllocatedMB();
