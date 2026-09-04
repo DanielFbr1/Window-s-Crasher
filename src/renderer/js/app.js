@@ -1,7 +1,9 @@
-// Controlador principal del juego y lógica de benchmarking - Windows Crasher v2.5.0
+// Controlador principal del juego y lógica de benchmarking - Windows Crasher v2.6.0
 class WindowsCrasherApp {
   constructor() {
-    this.appVersion = 'v2.5.0';
+    this.appVersion = 'v2.6.0';
+    this.creatorName = 'Daniel Valimaña';
+    this.kofiUrl = 'https://ko-fi.com/danielfbr';
     this.score = 0;
     this.tabsCount = 0;
     this.peakTabs = 0;

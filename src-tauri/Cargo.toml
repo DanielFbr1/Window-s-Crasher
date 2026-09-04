@@ -1,8 +1,8 @@
 [package]
 name = "windows-crasher"
-version = "2.5.0"
+version = "2.6.0"
 description = "Windows Crasher Desktop Game with Watchdog in Rust"
-authors = ["Antigravity Senior Developer"]
+authors = ["Daniel Valimaña <DanielFbr1>"]
 edition = "2021"
 
 [build-dependencies]

@@ -34,5 +34,5 @@ contextBridge.exposeInMainWorld('electronAPI', {
   },
 
   // Obtener versión de la app
-  getVersion: () => 'v2.5.0'
+  getVersion: () => 'v2.6.0'
 });

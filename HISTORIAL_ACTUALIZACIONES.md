@@ -2,6 +2,33 @@
 
 Este documento mantiene un registro cronológico de todas las versiones, modificaciones y mejoras implementadas en el proyecto para facilitar el contexto y seguimiento a usuarios y agentes.
 
+## [v2.6.0] - 2026-09-04
+### Preparación Completa para Publicación: Instalación de Android Studio y OpenJDK 17, Paquete Web HTML5 para Itch.io, Workflow CI/CD Cloud y Atribución a Daniel Valimaña
+- **Atribución Completa del Creador y Perfil de Ko-fi**:
+  - Se vinculó el perfil del creador **Daniel Valimaña** (`ko-fi.com/danielfbr`) en la interfaz:
+    - Tooltip enriquecido en el botón de cabecera: `Invitar a un café a Daniel Valimaña en Ko-fi (ko-fi.com/danielfbr)`.
+    - Botón ampliado en la pantalla de Game Over BSOD: `☕ ¿Te gustó el juego? Apoya a Daniel Valimaña en Ko-fi`.
+    - Pie de página oficial con autoría visible: `Windows Crasher Engine • Versión v2.6.0 • Desarrollado por Daniel Valimaña`.
+    - Autoría oficial reflejada en [package.json](file:///c:/Users/VALIMANA/Desktop/Proyectos/Window's%20Crasher/package.json) y [src-tauri/Cargo.toml](file:///c:/Users/VALIMANA/Desktop/Proyectos/Window's%20Crasher/src-tauri/Cargo.toml).
+- **Instalación de Entorno Nativo Android en el Equipo del Usuario**:
+  - **Microsoft OpenJDK 17** (`Microsoft.OpenJDK.17`): Descargado e instalado mediante winget para soporte nativo de compilación con Gradle.
+  - **Android Studio** (`Google.AndroidStudio 2026.1.4.7`): Descargado e instalado silenciosamente en `C:\Program Files\Android\Android Studio`.
+  - **Variable de Entorno `CAPACITOR_ANDROID_STUDIO_PATH`**: Configurada a nivel de usuario en Windows apuntando a `C:\Program Files\Android\Android Studio\bin\studio64.exe` para que `npm run cap:open` abra Android Studio sin errores de ruta.
+- **Paquete Web HTML5 Listo para Itch.io ("Play in Browser")**:
+  - Nuevo script `npm run pack:web` que empaqueta automáticamente el código del juego en `dist/Windows-Crasher-v2.6.0-HTML5-Web.zip`.
+  - Permite a los usuarios jugar inmediatamente a Windows Crasher desde el navegador web tanto en móviles como en PC sin descargar nada.
+- **Pipeline de Automatización en la Nube con GitHub Actions**:
+  - Se creó el workflow [.github/workflows/build-all.yml](file:///c:/Users/VALIMANA/Desktop/Proyectos/Window's%20Crasher/.github/workflows/build-all.yml).
+  - Al hacer push a GitHub, los servidores de GitHub compilan automáticamente:
+    1. El APK de Android (`Windows-Crasher-Android-v2.6.0-APK`).
+    2. El instalador de Windows y la versión Portable (`Windows-Crasher-v2.6.0-Windows-and-Web`).
+    3. El paquete HTML5 para Itch.io.
+  - Disponibles para descarga directa como artefactos sin necesidad de compilar localmente si no se desea.
+- **Sincronización Global de Versión v2.6.0**:
+  - Versión elevada a **`v2.6.0`** en `package.json`, `index.html`, `app.js`, `gauges.js`, `gpuBurner.js`, `main.js`, `preload.js`, `tauri.conf.json`, `src-tauri/Cargo.toml` y `start.bat`.
+
+---
+
 ## [v2.5.0] - 2026-09-04
 ### Integración del Modelo de Donaciones Ko-fi e Implementación de Soporte Nativo para Android (Capacitor)
 - **Integración del Modelo "Pay What You Want" / Donaciones con Ko-fi**:

@@ -1,6 +1,6 @@
 {
   "name": "windows-crasher",
-  "version": "2.5.0",
+  "version": "2.6.0",
   "description": "Videojuego incremental y de benchmarking de hardware con Watchdog de seguridad",
   "main": "src/main/main.js",
   "scripts": {
@@ -9,6 +9,7 @@
     "dist": "electron-builder",
     "dist:win": "electron-builder --win",
     "dist:portable": "electron-builder --win portable",
+    "pack:web": "powershell -NoProfile -Command \"if (-not (Test-Path dist)) { New-Item -ItemType Directory -Path dist }; Compress-Archive -Path 'src/renderer/*' -DestinationPath 'dist/Windows-Crasher-v2.6.0-HTML5-Web.zip' -Force\"",
     "cap:sync": "cap sync android",
     "cap:open": "cap open android"
   },
@@ -19,7 +20,7 @@
     "electron",
     "hardware-monitor"
   ],
-  "author": "DanielFbr1",
+  "author": "Daniel Valimaña (DanielFbr1)",
   "license": "MIT",
   "devDependencies": {
     "@capacitor/android": "^8.5.1",
