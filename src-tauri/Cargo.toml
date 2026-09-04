@@ -1,6 +1,6 @@
 [package]
 name = "windows-crasher"
-version = "2.1.0"
+version = "2.2.0"
 description = "Windows Crasher Desktop Game with Watchdog in Rust"
 authors = ["Antigravity Senior Developer"]
 edition = "2021"

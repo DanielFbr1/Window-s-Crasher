@@ -1,4 +1,4 @@
-// Módulo de renderizado de agujas SVG y gráfica de telemetría en tiempo real - v2.1.0 (CPU, RAM y GPU)
+// Módulo de renderizado de agujas SVG y gráfica de telemetría en tiempo real - v2.2.0 (CPU, RAM y GPU)
 class HardwareVisualizer {
   constructor(options = {}) {
     this.historyLength = 60; // 60 puntos (15 segundos a 250ms)

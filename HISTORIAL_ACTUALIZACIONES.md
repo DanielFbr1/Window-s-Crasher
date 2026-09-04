@@ -2,6 +2,18 @@
 
 Este documento mantiene un registro cronológico de todas las versiones, modificaciones y mejoras implementadas en el proyecto para facilitar el contexto y seguimiento a usuarios y agentes.
 
+## [v2.2.0] - 2026-09-04
+### Limpieza Visual de Interfaz y Simplificación Minimalista de Controles
+- **Eliminación de Textos Redundantes y Sobrecarga Visual**:
+  - **Hitos de Sobrecarga**: Se retiró la etiqueta de subtítulo `Automáticos (Sin Gastar Puntos)`.
+  - **Multiplicadores de Carga**: Se retiraron los multiplicadores de texto explícitos (`+7.5x` en Sobrecarga Total, `+3.0x` en CPU Melter, `+2.5x` en RAM Eater y `+2.0x` en GPU Burner), dejando los botones con un aspecto limpio, minimalista y directo (nombre, hotkey y tag de estado `ACTIVO`/`INACTIVO`).
+  - **Protocolo de Emergencia**: Se eliminó el título encabezado redundante `Protocolo de Emergencia` sobre el botón de aborto, manteniendo únicamente el pulsador de acción directa `🛑 ABORTO DE EMERGENCIA [ESC]`.
+  - **Matriz de Acciones de Pestañas**: Se eliminaron las etiquetas secundarias con texto explicativo de puntos y capacidad (`(+50 PTS / 64MB)`, `(−50 PTS / ALIVIO)`, `(+500 PTS / RÁFAGA)`, `(−500 PTS / PURGA)`). Los botones conservan su título principal nítido (`+1 PESTAÑA`, `−1 PESTAÑA`, `+10 PESTAÑAS`, `−10 PESTAÑAS`) y sus atajos de teclado (`[ESPACIO]`, `[RETROCESO]`, `[SHIFT+ESP]`, `[SHIFT+RET]`).
+- **Sincronización Global de Versión v2.2.0**:
+  - Versión elevada a **`v2.2.0`** en `index.html`, `app.js`, `gauges.js`, `main.js`, `package.json`, `tauri.conf.json`, `src-tauri/Cargo.toml` y `start.bat`.
+
+---
+
 ## [v2.1.0] - 2026-09-04
 ### Penalización de Puntuación al Restar Pestañas (-50 pts por pestaña) y Etiquetas Informativas en Matriz de Control
 - **Penalización Simétrica por Descompresión de Memoria**:

@@ -15,7 +15,7 @@ function createWindow() {
     height: 860,
     minWidth: 1000,
     minHeight: 700,
-    title: "Windows Crasher - v2.1.0",
+    title: "Windows Crasher - v2.2.0",
     backgroundColor: '#0a0d14',
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),

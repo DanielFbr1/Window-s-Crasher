@@ -1,7 +1,7 @@
-// Controlador principal del juego y lógica de benchmarking - Windows Crasher v2.1.0
+// Controlador principal del juego y lógica de benchmarking - Windows Crasher v2.2.0
 class WindowsCrasherApp {
   constructor() {
-    this.appVersion = 'v2.1.0';
+    this.appVersion = 'v2.2.0';
     this.score = 0;
     this.tabsCount = 0;
     this.peakTabs = 0;
@@ -656,7 +656,7 @@ class WindowsCrasherApp {
     if (areAllActive) {
       btnMaster.classList.add('active');
       if (tag) tag.textContent = 'ACTIVO';
-      if (sub) sub.textContent = 'CPU, RAM y GPU al límite (+7.5x)';
+      if (sub) sub.textContent = 'CPU, RAM y GPU al límite';
     } else {
       btnMaster.classList.remove('active');
       if (tag) tag.textContent = 'INACTIVO';
