@@ -7,8 +7,8 @@ function burnCpu() {
   if (!isRunning) return;
 
   const start = performance.now();
-  // Lote de cómputo ininterrumpido durante ~50ms
-  while (performance.now() - start < 50) {
+  // Lote de cómputo controlado durante ~35ms
+  while (performance.now() - start < 35) {
     // 1. Prueba de primalidad (ALU intensivo)
     const num = Math.floor(Math.random() * 500000) + 100000;
     let isPrime = true;
@@ -33,9 +33,9 @@ function burnCpu() {
     operations += (isPrime ? 1 : 0) + (trig > 0 ? 1 : 0);
   }
 
-  // Agendar siguiente ráfaga sin bloquear la cola de eventos del worker completamente
+  // Pequeña pausa de 6ms para sostener la CPU al 85-94% sin ahogar la cola del kernel
   if (isRunning) {
-    setTimeout(burnCpu, 0);
+    setTimeout(burnCpu, 6);
   }
 }
 

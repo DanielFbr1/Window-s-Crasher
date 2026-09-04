@@ -7,7 +7,7 @@ const CONFIG = {
   intervalMs: 250,
   ramThreshold: 92.0,
   cpuThreshold: 98.0,
-  cpuSustainedLimitTicks: 12, // 12 * 250ms = 3.0s continuos
+  cpuSustainedLimitTicks: 16, // 16 * 250ms = 4.0s continuos
   watchdogLagThresholdMs: 600
 };
 

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Windows Crasher - v1.8.0</title>
+  <title>Windows Crasher - v1.9.0</title>
   <link rel="stylesheet" href="styles/dashboard.css" />
 </head>
 <body>
@@ -13,7 +13,7 @@
     <div class="logo-container">
       <span class="logo-icon">⚡</span>
       <h1>WINDOWS CRASHER</h1>
-      <span class="version-badge" id="app-version-badge">v1.8.0</span>
+      <span class="version-badge" id="app-version-badge">v1.9.0</span>
     </div>
 
     <div class="header-status">
@@ -284,6 +284,23 @@
       <div class="card-title section-title-spacing">
         <span>Multiplicadores de Sobrecarga</span>
       </div>
+
+      <!-- Botón Maestro: Activar / Desactivar Todos los Multiplicadores -->
+      <button id="btn-toggle-all-mults" class="btn-master-multipliers" title="Activar o desactivar todos los multiplicadores simultáneamente (Atajo: T o 4)">
+        <div class="master-mult-left">
+          <span class="master-mult-icon">⚡</span>
+          <div class="master-mult-text-wrap">
+            <span class="master-mult-title">SOBRECARGA TOTAL</span>
+            <span class="master-mult-subtitle" id="master-mult-sub">Activar CPU, RAM y GPU juntos</span>
+          </div>
+        </div>
+        <div class="master-mult-right">
+          <span class="master-mult-boost">+7.5x</span>
+          <span class="master-mult-tag" id="master-mult-tag">INACTIVO</span>
+          <span class="btn-hotkey-hint">[T]</span>
+        </div>
+      </button>
+
       <div class="multipliers-compact-grid">
         <button class="multiplier-compact-btn" id="btn-toggle-cpu" title="Sobrecargar hilos de CPU (Atajo: Tecla 1)">
           <span class="mult-name text-cyan">🔥 CPU MELTER <span class="mult-hotkey-pill">[1]</span></span>
@@ -318,7 +335,7 @@
   <!-- Pie de página con versión explícita y atajos -->
   <footer>
     <div>
-      Windows Crasher Engine • Versión <strong class="text-cyan" id="footer-version-text">v1.8.0</strong>
+      Windows Crasher Engine • Versión <strong class="text-cyan" id="footer-version-text">v1.9.0</strong>
     </div>
     <div class="footer-shortcuts">
       <span><span class="shortcut-pill">ESPACIO</span> +1</span>
@@ -326,6 +343,7 @@
       <span><span class="shortcut-pill">SHIFT+ESP</span> +10</span>
       <span><span class="shortcut-pill">SHIFT+BACK</span> -10</span>
       <span><span class="shortcut-pill">1-3</span> Cargas</span>
+      <span><span class="shortcut-pill">T / 4</span> Todos</span>
       <span><span class="shortcut-pill">M</span> Audio</span>
       <span><span class="shortcut-pill">ESC</span> Pánico</span>
       <span><span class="shortcut-pill">R</span> Reinicio</span>
@@ -333,7 +351,7 @@
   </footer>
 
   <!-- =====================================================================
-       PANTALLA DE GAME OVER: AUTÉNTICA BSOD MINIMALISTA DE WINDOWS (v1.8.0)
+       PANTALLA DE GAME OVER: AUTÉNTICA BSOD MINIMALISTA DE WINDOWS (v1.9.0)
        ===================================================================== -->
   <div id="game-over-modal" class="modal-overlay">
     <div class="bsod-minimal">

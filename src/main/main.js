@@ -6,13 +6,27 @@ const HardwareMonitor = require('./monitor');
 let mainWindow = null;
 let hardwareMonitor = null;
 
+// Prevención de múltiples instancias para evitar bloqueos de caché en disco (0x5)
+const gotTheLock = app.requestSingleInstanceLock();
+if (!gotTheLock) {
+  console.log('[Main] Otra instancia ya está en ejecución. Saliendo...');
+  app.quit();
+} else {
+  app.on('second-instance', () => {
+    if (mainWindow) {
+      if (mainWindow.isMinimized()) mainWindow.restore();
+      mainWindow.focus();
+    }
+  });
+}
+
 function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1280,
     height: 860,
     minWidth: 1000,
     minHeight: 700,
-    title: "Windows Crasher - v1.7.0",
+    title: "Windows Crasher - v1.9.0",
     backgroundColor: '#0a0d14',
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
@@ -45,7 +59,7 @@ app.whenReady().then(() => {
     intervalMs: 250,
     ramThreshold: 92.0,
     cpuThreshold: 98.0,
-    cpuSustainedLimitTicks: 12, // 3.0s a 250ms
+    cpuSustainedLimitTicks: 16, // 4.0s a 250ms
     watchdogLagThresholdMs: 600
   });
 

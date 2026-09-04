@@ -2,6 +2,38 @@
 
 Este documento mantiene un registro cronológico de todas las versiones, modificaciones y mejoras implementadas en el proyecto para facilitar el contexto y seguimiento a usuarios y agentes.
 
+## [v1.9.0] - 2026-09-04
+### Botón Maestro de Sobrecarga Total (Activar Todos los Multiplicadores), Calibración de Carga de CPU y Blindaje de Estabilidad
+- **Botón Maestro de Sobrecarga Total (`⚡ SOBRECARGA TOTAL [T o 4]`)**:
+  - **Nuevo pulsador maestro interactivo** en la columna de control derecha (`#btn-toggle-all-mults`), ubicado directamente sobre la cuadrícula de multiplicadores.
+  - Permite activar o desactivar simultáneamente los 3 multiplicadores pesados del juego con un solo clic o atajo de teclado:
+    - `🔥 CPU MELTER` (+3.0x)
+    - `💾 RAM EATER` (+2.5x)
+    - `🌌 GPU BURNER` (+2.0x)
+    - **Multiplicador combinado total inmediato: +7.5x**.
+  - **Lógica inteligente de alternancia**:
+    - Si al menos uno de los tres multiplicadores se encuentra inactivo, enciende de golpe todos los aceleradores restantes y reproduce el efecto de sobretensión sonora (`playPower(true)`).
+    - Si los tres multiplicadores ya están activos, los desactiva todos de forma sincronizada (`playPower(false)`).
+  - **Diseño Cyberpunk Reactivo**:
+    - Estado de reposo: Fondo degradado sutil con borde violeta y badge `INACTIVO`.
+    - Estado activo: Iluminación neón magenta/carmesí pulsante, sombra volumétrica violeta, badge `ACTIVO` y subtítulo dinámico `CPU, RAM y GPU al límite (+7.5x)`.
+    - Sincronización bidireccional automática: si el usuario activa individualmente los multiplicadores con las teclas `1`, `2` y `3`, el botón maestro detecta cuando los tres están encendidos y pasa a estado activo automáticamente.
+  - **Atajos de Teclado Globales**:
+    - Tecla `T` (Todas / Todos) y tecla `4`.
+    - Añadido al listado de combinaciones en el pie de página (`T / 4 Todos`).
+- **Revisión Completa de Estabilidad y Calibración para Lanzamiento Definitivo**:
+  - **Modulación del Ciclo de Trabajo en CPU Melter (`cpuMelter.worker.js` & `app.js`)**:
+    - *Problema resuelto*: Anteriormente, `CPU Melter` saturaba todos los hilos al 100% ininterrumpidamente, provocando que el Watchdog detuviera la partida a los 3 segundos exactos con `GAME OVER: CPU saturada al 98%+ de forma sostenida (3.0s > 3.0s)`.
+    - *Solución*: Se moduló el bucle con ráfagas de 35ms y pausas de 6ms, y se reserva permanentemente 1 hilo libre del procesador para el Watchdog y la cola del kernel (`Math.min(count - 1, 8)`). Se amplió la tolerancia continua a 16 ticks (4.0s) en `monitorWorker.js` y `main.js`. Ahora la CPU se sitúa en una zona de peligro y estrés extrema (~88-94%) permitiendo una jugabilidad tensa y disfrutable sin muertes instantáneas injustas.
+  - **Prevención de Bloqueos de Caché en Disco Electron (`app.requestSingleInstanceLock`)**:
+    - Se incorporó el candado de instancia única en `main.js` para evitar colisiones de archivos de caché en disco (error `Acceso denegado 0x5`) ante lanzamientos simultáneos.
+  - **Limpieza y Sincronización Rigurosa en Reinicios (`restartGame`)**:
+    - Garantizada la parada y purga de workers de cómputo, intervalos de asignación de RAM y buffers de memoria tanto en Game Over como en la función `restartGame()`, evitando estados zombies o desincronizaciones de botones.
+- **Sincronización de Versión Global v1.9.0**:
+  - Versión elevada a **`v1.9.0`** en `index.html`, `app.js`, `gauges.js`, `main.js`, `package.json`, `tauri.conf.json`, `src-tauri/Cargo.toml` y `start.bat`.
+
+---
+
 ## [v1.8.0] - 2026-09-04
 ### Telemetría Completa de GPU (3er Dial Analógico y Osciloscopio), Freno de Flujo por Inactividad (Anti-AFK) y Recalibración Rigurosa de Tier S
 - **Freno de Flujo por Inactividad (Mecánica Anti-AFK / Idle Decay)**:

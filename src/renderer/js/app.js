@@ -1,7 +1,7 @@
-// Controlador principal del juego y lógica de benchmarking - Windows Crasher v1.8.0
+// Controlador principal del juego y lógica de benchmarking - Windows Crasher v1.9.0
 class WindowsCrasherApp {
   constructor() {
-    this.appVersion = 'v1.8.0';
+    this.appVersion = 'v1.9.0';
     this.score = 0;
     this.tabsCount = 0;
     this.peakTabs = 0;
@@ -225,6 +225,15 @@ class WindowsCrasherApp {
       });
     }
 
+    // Toggle All Multipliers (Botón Maestro)
+    const btnAllMults = document.getElementById('btn-toggle-all-mults');
+    if (btnAllMults) {
+      btnAllMults.addEventListener('click', () => {
+        this.recordUserActivity();
+        this.toggleAllMultipliers();
+      });
+    }
+
     // Toggle CPU Melter (Compacto)
     const btnCpu = document.getElementById('btn-toggle-cpu');
     if (btnCpu) {
@@ -357,6 +366,9 @@ class WindowsCrasherApp {
       } else if (e.key === '3') {
         this.recordUserActivity();
         this.toggleGpuBurner();
+      } else if (e.key === '4' || e.key.toLowerCase() === 't') {
+        this.recordUserActivity();
+        this.toggleAllMultipliers();
       } else if (e.key.toLowerCase() === 'm') {
         this.recordUserActivity();
         const btnAudio = document.getElementById('btn-audio-toggle');
@@ -504,16 +516,19 @@ class WindowsCrasherApp {
     }
     this.recalculateMultiplier();
     this.syncVisualizerMultipliers();
+    this.updateMasterMultiplierButtonState();
   }
 
   startCpuWorkers(count) {
     this.stopCpuWorkers();
-    for (let i = 0; i < count; i++) {
+    // Dejar al menos 1 hilo disponible para el Watchdog y sistema operativo para evitar falsos positivos
+    const workerCount = Math.max(1, Math.min(count - 1, 8));
+    for (let i = 0; i < workerCount; i++) {
       const worker = new Worker('workers/cpuMelter.worker.js');
       worker.postMessage({ action: 'start', id: i });
       this.cpuWorkers.push(worker);
     }
-    console.log(`[CPU Melter] Desplegados ${this.cpuWorkers.length} workers intensivos`);
+    console.log(`[CPU Melter] Desplegados ${this.cpuWorkers.length} workers intensivos (reserva de 1 hilo kernel)`);
   }
 
   stopCpuWorkers() {
@@ -559,6 +574,7 @@ class WindowsCrasherApp {
     }
     this.recalculateMultiplier();
     this.syncVisualizerMultipliers();
+    this.updateMasterMultiplierButtonState();
   }
 
   toggleGpuBurner() {
@@ -582,6 +598,48 @@ class WindowsCrasherApp {
     }
     this.recalculateMultiplier();
     this.syncVisualizerMultipliers();
+    this.updateMasterMultiplierButtonState();
+  }
+
+  // Activar o desactivar todos los multiplicadores simultáneamente (Botón Maestro)
+  toggleAllMultipliers() {
+    if (this.isGameOver) return;
+
+    const isGpuOn = Boolean(this.gpuBurner && this.gpuBurner.isActive);
+    const areAllActive = this.isCpuMelterActive && this.isRamEaterActive && isGpuOn;
+
+    if (areAllActive) {
+      // Si todos están activos, apagarlos todos
+      if (this.isCpuMelterActive) this.toggleCpuMelter();
+      if (this.isRamEaterActive) this.toggleRamEater();
+      if (isGpuOn) this.toggleGpuBurner();
+    } else {
+      // Si alguno está apagado, encender todos los que falten
+      if (!this.isCpuMelterActive) this.toggleCpuMelter();
+      if (!this.isRamEaterActive) this.toggleRamEater();
+      if (!isGpuOn && this.gpuBurner) this.toggleGpuBurner();
+    }
+  }
+
+  updateMasterMultiplierButtonState() {
+    const btnMaster = document.getElementById('btn-toggle-all-mults');
+    if (!btnMaster) return;
+
+    const isGpuOn = Boolean(this.gpuBurner && this.gpuBurner.isActive);
+    const areAllActive = this.isCpuMelterActive && this.isRamEaterActive && isGpuOn;
+
+    const tag = document.getElementById('master-mult-tag');
+    const sub = document.getElementById('master-mult-sub');
+
+    if (areAllActive) {
+      btnMaster.classList.add('active');
+      if (tag) tag.textContent = 'ACTIVO';
+      if (sub) sub.textContent = 'CPU, RAM y GPU al límite (+7.5x)';
+    } else {
+      btnMaster.classList.remove('active');
+      if (tag) tag.textContent = 'INACTIVO';
+      if (sub) sub.textContent = 'Activar CPU, RAM y GPU juntos';
+    }
   }
 
   syncVisualizerMultipliers() {
@@ -908,11 +966,13 @@ class WindowsCrasherApp {
 
     // 1. Apagar trabajadores de estrés inmediatamente
     this.stopCpuWorkers();
+    this.isCpuMelterActive = false;
     if (this.gpuBurner) this.gpuBurner.stop();
     if (this.ramEaterInterval) {
       clearInterval(this.ramEaterInterval);
       this.ramEaterInterval = null;
     }
+    this.isRamEaterActive = false;
 
     // 2. Liberar toda la memoria retenida
     const freedMB = this.ramEater.releaseAll();
@@ -921,6 +981,7 @@ class WindowsCrasherApp {
     // 3. Resetear botones de estado
     document.querySelectorAll('.multiplier-compact-btn').forEach((c) => c.classList.remove('active'));
     document.querySelectorAll('.mult-tag').forEach((t) => (t.textContent = 'INACTIVO'));
+    this.updateMasterMultiplierButtonState();
 
     // 4. Calcular métricas finales y estadísticas de récord
     const finalScore = Math.floor(this.score);
@@ -1080,6 +1141,22 @@ class WindowsCrasherApp {
     if (modal) {
       modal.classList.remove('visible');
     }
+
+    // Detener cualquier worker o asignación activa previa
+    this.stopCpuWorkers();
+    this.isCpuMelterActive = false;
+    if (this.gpuBurner) this.gpuBurner.stop();
+    if (this.ramEaterInterval) {
+      clearInterval(this.ramEaterInterval);
+      this.ramEaterInterval = null;
+    }
+    this.isRamEaterActive = false;
+    if (this.ramEater) {
+      this.ramEater.releaseAll();
+    }
+    document.querySelectorAll('.multiplier-compact-btn').forEach((c) => c.classList.remove('active'));
+    document.querySelectorAll('.mult-tag').forEach((t) => (t.textContent = 'INACTIVO'));
+    this.updateMasterMultiplierButtonState();
 
     // Resetear variables internas de la sesión
     this.score = 0;
