@@ -25,8 +25,9 @@ Este documento mantiene un registro cronológico de todas las versiones, modific
   - **Modulación del Ciclo de Trabajo en CPU Melter (`cpuMelter.worker.js` & `app.js`)**:
     - *Problema resuelto*: Anteriormente, `CPU Melter` saturaba todos los hilos al 100% ininterrumpidamente, provocando que el Watchdog detuviera la partida a los 3 segundos exactos con `GAME OVER: CPU saturada al 98%+ de forma sostenida (3.0s > 3.0s)`.
     - *Solución*: Se moduló el bucle con ráfagas de 35ms y pausas de 6ms, y se reserva permanentemente 1 hilo libre del procesador para el Watchdog y la cola del kernel (`Math.min(count - 1, 8)`). Se amplió la tolerancia continua a 16 ticks (4.0s) en `monitorWorker.js` y `main.js`. Ahora la CPU se sitúa en una zona de peligro y estrés extrema (~88-94%) permitiendo una jugabilidad tensa y disfrutable sin muertes instantáneas injustas.
-  - **Prevención de Bloqueos de Caché en Disco Electron (`app.requestSingleInstanceLock`)**:
-    - Se incorporó el candado de instancia única en `main.js` para evitar colisiones de archivos de caché en disco (error `Acceso denegado 0x5`) ante lanzamientos simultáneos.
+  - **Prevención de Bloqueos de Caché en Disco y Single Instance Lock**:
+    - *Problema resuelto*: `app.requestSingleInstanceLock()` bloqueaba el arranque manual del usuario si una instancia anterior o en segundo plano estaba activa (`Lock file can not be created! Error code: 32` y `Acceso denegado 0x5`).
+    - *Solución*: Se desactivó la colisión del singleton lock y se incorporó el flag nativo `disable-gpu-shader-disk-cache` en `main.js`, garantizando que el usuario pueda ejecutar `npm start` limpiamente sin advertencias de caché ni bloqueos de proceso.
   - **Limpieza y Sincronización Rigurosa en Reinicios (`restartGame`)**:
     - Garantizada la parada y purga de workers de cómputo, intervalos de asignación de RAM y buffers de memoria tanto en Game Over como en la función `restartGame()`, evitando estados zombies o desincronizaciones de botones.
 - **Sincronización de Versión Global v1.9.0**:

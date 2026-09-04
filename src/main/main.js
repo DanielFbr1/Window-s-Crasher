@@ -6,19 +6,8 @@ const HardwareMonitor = require('./monitor');
 let mainWindow = null;
 let hardwareMonitor = null;
 
-// Prevención de múltiples instancias para evitar bloqueos de caché en disco (0x5)
-const gotTheLock = app.requestSingleInstanceLock();
-if (!gotTheLock) {
-  console.log('[Main] Otra instancia ya está en ejecución. Saliendo...');
-  app.quit();
-} else {
-  app.on('second-instance', () => {
-    if (mainWindow) {
-      if (mainWindow.isMinimized()) mainWindow.restore();
-      mainWindow.focus();
-    }
-  });
-}
+// Desactivar caché en disco de shaders para evitar errores de colisión y permisos en Windows (0x5 / -2)
+app.commandLine.appendSwitch('disable-gpu-shader-disk-cache');
 
 function createWindow() {
   mainWindow = new BrowserWindow({
