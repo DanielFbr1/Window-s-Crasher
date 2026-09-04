@@ -23,6 +23,9 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
@@ -33,11 +36,8 @@ jobs:
         run: npm ci
 
       - name: Sync Capacitor Android
-        run: npm run cap:sync
-
-      - name: Accept Android SDK licenses
-        run: |
-          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
+        run: npx @capacitor/cli sync android --inline
+        continue-on-error: true
 
       - name: Grant execute permission for gradlew
         run: chmod +x android/gradlew
@@ -46,18 +46,17 @@ jobs:
         run: |
           cd android
           ./gradlew assembleDebug --no-daemon
-        env:
-          ANDROID_HOME: /usr/local/lib/android/sdk
 
       - name: Prepare named APK
         run: |
-          cp android/app/build/outputs/apk/debug/app-debug.apk android/app/build/outputs/apk/debug/Windows-Crasher-v2.6.0-Android.apk
+          mkdir -p output-apk
+          cp android/app/build/outputs/apk/debug/app-debug.apk output-apk/Windows-Crasher-v2.6.0-Android.apk
 
       - name: Upload Android APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: Windows-Crasher-Android-v2.6.0-APK
-          path: android/app/build/outputs/apk/debug/Windows-Crasher-v2.6.0-Android.apk
+          path: output-apk/Windows-Crasher-v2.6.0-Android.apk
           if-no-files-found: error
 
   build-windows-and-web:
@@ -97,18 +96,21 @@ jobs:
     name: Publish Release Assets
     needs: [build-android, build-windows-and-web]
     runs-on: ubuntu-latest
+    if: always() && (needs.build-android.result == 'success' || needs.build-windows-and-web.result == 'success')
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Download Android Artifact
         uses: actions/download-artifact@v4
+        continue-on-error: true
         with:
           name: Windows-Crasher-Android-v2.6.0-APK
           path: release-assets/
 
       - name: Download Windows and Web Artifacts
         uses: actions/download-artifact@v4
+        continue-on-error: true
         with:
           name: Windows-Crasher-v2.6.0-Windows-and-Web
           path: release-assets/
