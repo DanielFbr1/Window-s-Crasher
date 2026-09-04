@@ -1,7 +1,7 @@
-// Controlador principal del juego y lógica de benchmarking - Windows Crasher v2.2.0
+// Controlador principal del juego y lógica de benchmarking - Windows Crasher v2.3.0
 class WindowsCrasherApp {
   constructor() {
-    this.appVersion = 'v2.2.0';
+    this.appVersion = 'v2.3.0';
     this.score = 0;
     this.tabsCount = 0;
     this.peakTabs = 0;
@@ -808,10 +808,11 @@ class WindowsCrasherApp {
       }
 
       // REGLA DE PUNTUACIÓN AUTOMÁTICA:
-      // Si NO hay multiplicadores activos, el flujo es 0 absoluto (solo suben puntos al hacer click).
-      // Solo sube la puntuación automáticamente cuando hay algún multiplicador activado.
+      // Si NO hay multiplicadores activos o NO hay pestañas abiertas (tabsCount <= 0),
+      // el flujo es 0 absoluto (no se pueden generar puntos pasivos sin pestañas que estresar).
+      // Solo sube la puntuación automáticamente cuando hay algún multiplicador activado Y al menos 1 pestaña viva.
       // El multiplicador genera más puntos según las pestañas que haya abiertas (+abiertas +multiplica).
-      if (activeMultCount === 0) {
+      if (activeMultCount === 0 || this.tabsCount <= 0) {
         this.currentFlowRate = 0;
       } else {
         // Potencia combinada de multiplicadores activos (CPU 3.0x, RAM 2.5x, GPU 2.0x)
@@ -820,7 +821,7 @@ class WindowsCrasherApp {
                           (this.gpuBurner && this.gpuBurner.isActive ? 2.0 : 0);
 
         // Las pestañas abiertas multiplican directamente la generación de puntos:
-        const tabMultiplier = 1.0 + (this.tabsCount * 0.65);
+        const tabMultiplier = this.tabsCount * 0.75;
 
         // Densidad de hardware incluyendo GPU (CPU + RAM + GPU 3D)
         const loadNorm = (cpu + ram + (gpu * 1.2)) / 215;

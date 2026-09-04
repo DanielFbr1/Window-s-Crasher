@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Windows Crasher - v2.2.0</title>
+  <title>Windows Crasher - v2.3.0</title>
   <link rel="stylesheet" href="styles/dashboard.css" />
 </head>
 <body>
@@ -13,7 +13,7 @@
     <div class="logo-container">
       <span class="logo-icon">⚡</span>
       <h1>WINDOWS CRASHER</h1>
-      <span class="version-badge" id="app-version-badge">v2.2.0</span>
+      <span class="version-badge" id="app-version-badge">v2.3.0</span>
     </div>
 
     <div class="header-status">
@@ -257,22 +257,18 @@
       <div class="tab-actions-matrix">
         <button id="btn-add-tab" class="action-btn-matrix action-btn-add" title="Abrir 1 pestaña de memoria (Atajo: ESPACIO o ENTER)">
           <span class="btn-main-title">+1 PESTAÑA</span>
-          <span class="btn-hotkey-hint">[ESPACIO]</span>
         </button>
 
         <button id="btn-remove-tab" class="action-btn-matrix action-btn-remove" title="Liberar 1 pestaña de memoria (Atajo: RETROCESO o -)">
           <span class="btn-main-title">−1 PESTAÑA</span>
-          <span class="btn-hotkey-hint">[RETROCESO]</span>
         </button>
 
         <button id="btn-add-10-tabs" class="action-btn-matrix action-btn-burst" title="Ráfaga de 10 pestañas directas (Atajo: SHIFT + ESPACIO)">
           <span class="btn-main-title">+10 PESTAÑAS</span>
-          <span class="btn-hotkey-hint">[SHIFT+ESP]</span>
         </button>
 
         <button id="btn-remove-10-tabs" class="action-btn-matrix action-btn-purge" title="Purga de emergencia de 10 pestañas (Atajo: SHIFT + RETROCESO)">
           <span class="btn-main-title">−10 PESTAÑAS</span>
-          <span class="btn-hotkey-hint">[SHIFT+RET]</span>
         </button>
       </div>
 
@@ -292,21 +288,20 @@
         </div>
         <div class="master-mult-right">
           <span class="master-mult-tag" id="master-mult-tag">INACTIVO</span>
-          <span class="btn-hotkey-hint">[T]</span>
         </div>
       </button>
 
       <div class="multipliers-compact-grid">
         <button class="multiplier-compact-btn" id="btn-toggle-cpu" title="Sobrecargar hilos de CPU (Atajo: Tecla 1)">
-          <span class="mult-name text-cyan">🔥 CPU MELTER <span class="mult-hotkey-pill">[1]</span></span>
+          <span class="mult-name text-cyan">🔥 CPU MELTER</span>
           <span class="mult-tag">INACTIVO</span>
         </button>
         <button class="multiplier-compact-btn" id="btn-toggle-ram" title="Asignar buffers continuos de RAM (Atajo: Tecla 2)">
-          <span class="mult-name text-green">💾 RAM EATER <span class="mult-hotkey-pill">[2]</span></span>
+          <span class="mult-name text-green">💾 RAM EATER</span>
           <span class="mult-tag">INACTIVO</span>
         </button>
         <button class="multiplier-compact-btn" id="btn-toggle-gpu" title="Shader raymarching GPU offscreen (Atajo: Tecla 3)">
-          <span class="mult-name text-purple">🌌 GPU BURNER <span class="mult-hotkey-pill">[3]</span></span>
+          <span class="mult-name text-purple">🌌 GPU BURNER</span>
           <span class="mult-tag">INACTIVO</span>
         </button>
       </div>
@@ -315,7 +310,6 @@
       <div class="panic-container-section">
         <button id="btn-panic" class="btn-panic" title="Detonar parada de emergencia (Atajo: ESC)">
           <span>🛑 ABORTO DE EMERGENCIA</span>
-          <span class="btn-hotkey-hint">[ESC]</span>
         </button>
       </div>
     </section>
@@ -324,7 +318,7 @@
   <!-- Pie de página con versión explícita y atajos -->
   <footer>
     <div>
-      Windows Crasher Engine • Versión <strong class="text-cyan" id="footer-version-text">v2.2.0</strong>
+      Windows Crasher Engine • Versión <strong class="text-cyan" id="footer-version-text">v2.3.0</strong>
     </div>
     <div class="footer-shortcuts">
       <span><span class="shortcut-pill">ESPACIO</span> +1</span>
@@ -340,7 +334,7 @@
   </footer>
 
   <!-- =====================================================================
-       PANTALLA DE GAME OVER: AUTÉNTICA BSOD MINIMALISTA DE WINDOWS (v2.2.0)
+       PANTALLA DE GAME OVER: AUTÉNTICA BSOD MINIMALISTA DE WINDOWS (v2.3.0)
        ===================================================================== -->
   <div id="game-over-modal" class="modal-overlay">
     <div class="bsod-minimal">

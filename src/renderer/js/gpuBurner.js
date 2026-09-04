@@ -1,4 +1,4 @@
-// Módulo WebGL 2.0 para sobrecarga intensiva de GPU mediante Raymarching Shader
+// Módulo WebGL 2.0 para sobrecarga intensiva de GPU mediante Raymarching Shader - v2.3.0
 class GpuBurner {
   constructor(canvasElement) {
     this.canvas = canvasElement || document.createElement('canvas');
@@ -119,12 +119,14 @@ class GpuBurner {
   start() {
     if (this.isActive || !this.gl || !this.program) return;
     this.isActive = true;
+    this.burnStartTime = Date.now();
     this.render();
     console.log('[GpuBurner] Shader de estrés GPU activado');
   }
 
   stop() {
     this.isActive = false;
+    this.burnStartTime = 0;
     if (this.animationFrameId) {
       cancelAnimationFrame(this.animationFrameId);
       this.animationFrameId = null;
@@ -166,16 +168,32 @@ class GpuBurner {
 
   getGpuLoad(tabCount = 0) {
     if (this.isActive) {
-      // GPU Burner activo: sobrecarga masiva de raymarching amplificada por pestañas activas
-      const jitter = Math.sin(Date.now() * 0.006) * 2.0;
-      const tabExtra = Math.min(14.0, tabCount * 0.75); // Cada pestaña virtual suma cómputo gráfico
-      const baseBurn = 86.5 + Math.min(6.0, (this.lastFrameDurationMs || 2.0) * 1.5);
-      this.estimatedGpuLoad = Math.min(99.0, Math.max(82.0, baseBurn + tabExtra + jitter));
+      const jitter = Math.sin(Date.now() * 0.006) * 1.8;
+
+      // Si NO hay pestañas abiertas, GPU Burner corre en vacío (~28-34%)
+      // Esto evita que con 0 pestañas se quede en el filo del 90% ni sume puntos infinitos
+      if (tabCount <= 0) {
+        this.estimatedGpuLoad = Math.max(26.0, Math.min(36.0, 31.0 + jitter));
+        return parseFloat(this.estimatedGpuLoad.toFixed(1));
+      }
+
+      // Con pestañas abiertas, la sobrecarga escala agresivamente según el volumen de ventanas
+      const tabLoad = tabCount * 5.2; // 5 pestañas = +26%, 10 pestañas = +52%
+      
+      // Calentamiento térmico progresivo si se mantiene encendido de forma continuada
+      const activeSec = this.burnStartTime ? (Date.now() - this.burnStartTime) / 1000 : 0;
+      const thermalDrift = Math.min(10.0, activeSec * 0.4); // Sube hasta +10% en 25 segundos
+
+      const baseBurn = 42.0 + Math.min(8.0, (this.lastFrameDurationMs || 2.0) * 1.5);
+      const totalLoad = baseBurn + tabLoad + thermalDrift + jitter;
+
+      // Si acumula bastantes pestañas (8+) o se mantiene continuo, alcanza 90%+ desafiando el Watchdog
+      this.estimatedGpuLoad = Math.min(99.0, Math.max(30.0, totalLoad));
     } else {
       // Carga base según pestañas y composición de ventanas
-      const tabLoad = Math.min(25.0, tabCount * 0.8);
-      const idleJitter = Math.sin(Date.now() * 0.003) * 1.5;
-      this.estimatedGpuLoad = Math.max(4.0, Math.min(32.0, 6.0 + tabLoad + idleJitter));
+      const tabLoad = Math.min(22.0, tabCount * 0.7);
+      const idleJitter = Math.sin(Date.now() * 0.003) * 1.2;
+      this.estimatedGpuLoad = Math.max(4.0, Math.min(28.0, 6.0 + tabLoad + idleJitter));
     }
     return parseFloat(this.estimatedGpuLoad.toFixed(1));
   }

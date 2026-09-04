@@ -2,6 +2,24 @@
 
 Este documento mantiene un registro cronológico de todas las versiones, modificaciones y mejoras implementadas en el proyecto para facilitar el contexto y seguimiento a usuarios y agentes.
 
+## [v2.3.0] - 2026-09-04
+### Corrección del Exploit de GPU Burner en Vacío (Bloqueo de Puntos sin Pestañas y Calibración de Carga) y Limpieza de Atajos en Botones
+- **Eliminación del Exploit de GPU Burner con 0 Pestañas**:
+  - *Problema resuelto*: Al activar GPU Burner sin abrir ninguna pestaña, la GPU se mantenía de forma fija en un 87.5% - 89.5% (justo por debajo del límite de corte del 90.0%), permitiendo generar puntos pasivos de forma infinita y sin riesgo de Game Over.
+  - *Calibración de Carga de GPU ([gpuBurner.js](file:///c:/Users/VALIMANA/Desktop/Proyectos/Window's%20Crasher/src/renderer/js/gpuBurner.js))*:
+    - Con **0 pestañas abiertas**, GPU Burner opera en vacío consumiendo únicamente entre el **28.0% y 34.0%** de GPU, evitando situarse en el filo de navaja ni amagar con el 90%.
+    - La carga gráfica ahora escala agresivamente en función de las **pestañas activas** (`+5.2%` por cada ventana) y suma acumulación térmica gradual (`+0.4%/s` hasta un máximo de +10%). Con 8-10 pestañas abiertas, la GPU alcanza la franja crítica del 88% al 96%, obligando a gestionar la descompresión con `−1` o `−10` pestañas o desactivar el acelerador antes de que pasen los 2.5s sostenidos del Watchdog.
+- **Bloqueo Total de Flujo de Puntos con 0 Pestañas ([app.js](file:///c:/Users/VALIMANA/Desktop/Proyectos/Window's%20Crasher/src/renderer/js/app.js))**:
+  - Si no hay al menos 1 pestaña abierta (`tabsCount <= 0`), la tasa de generación de puntos automática es estrictamente **0 pts/s** (`this.currentFlowRate = 0`).
+  - La sinergia de multiplicadores ahora multiplica exclusivamente las pestañas abiertas activas (`tabMultiplier = this.tabsCount * 0.75`), impidiendo sumar puntos si no hay ventanas vivas que estén siendo estresadas.
+- **Limpieza de Indicadores de Atajos de Teclado en Botones ([index.html](file:///c:/Users/VALIMANA/Desktop/Proyectos/Window's%20Crasher/src/renderer/index.html))**:
+  - Se eliminaron los textos de hotkeys dentro de los pulsadores de la columna derecha (`[ESPACIO]`, `[RETROCESO]`, `[SHIFT+ESP]`, `[SHIFT+RET]`, `[T]`, `[1]`, `[2]`, `[3]`, `[ESC]`).
+  - Los atajos siguen plenamente funcionales y se encuentran organizados de forma limpia en el pie de página del dashboard.
+- **Sincronización Global de Versión v2.3.0**:
+  - Versión elevada a **`v2.3.0`** en `index.html`, `app.js`, `gpuBurner.js`, `gauges.js`, `main.js`, `package.json`, `tauri.conf.json`, `src-tauri/Cargo.toml` y `start.bat`.
+
+---
+
 ## [v2.2.0] - 2026-09-04
 ### Limpieza Visual de Interfaz y Simplificación Minimalista de Controles
 - **Eliminación de Textos Redundantes y Sobrecarga Visual**:
