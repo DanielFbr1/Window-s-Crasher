@@ -9,6 +9,9 @@ on:
 permissions:
   contents: write
 
+env:
+  APP_VERSION: "2.7.0"
+
 jobs:
   build-android:
     name: Build Android APK
@@ -28,17 +31,22 @@ jobs:
         with:
           packages: 'platform-tools platforms;android-35 build-tools;35.0.0'
 
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
+          cache: 'pnpm'
 
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
       - name: Sync Capacitor Android
-        run: npx @capacitor/cli sync android --inline
+        run: pnpm exec capacitor sync android --inline
         continue-on-error: true
 
       - name: Grant execute permission for gradlew
@@ -57,14 +65,14 @@ jobs:
       - name: Prepare named APK
         run: |
           mkdir -p output-apk
-          find android/ -name "*.apk" -exec cp -v {} output-apk/Windows-Crasher-v2.6.0-Android.apk \;
+          find android/ -name "*.apk" -exec cp -v {} output-apk/Windows-Crasher-v${{ env.APP_VERSION }}-Android.apk \;
           ls -la output-apk/
 
       - name: Upload Android APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Windows-Crasher-Android-v2.6.0-APK
-          path: output-apk/Windows-Crasher-v2.6.0-Android.apk
+          name: Windows-Crasher-Android-v${{ env.APP_VERSION }}-APK
+          path: output-apk/Windows-Crasher-v${{ env.APP_VERSION }}-Android.apk
           if-no-files-found: error
 
   build-windows-and-web:
@@ -74,20 +82,25 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
+          cache: 'pnpm'
 
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
       - name: Package HTML5 Web bundle for Itch.io
-        run: npm run pack:web
+        run: pnpm run pack:web
 
       - name: Build Windows Portable EXE
-        run: npx electron-builder --win portable
+        run: pnpm exec electron-builder --win portable
         continue-on-error: true
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: false
@@ -95,7 +108,7 @@ jobs:
       - name: Upload Windows and Web Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: Windows-Crasher-v2.6.0-Windows-and-Web
+          name: Windows-Crasher-v${{ env.APP_VERSION }}-Windows-and-Web
           path: |
             dist/*.exe
             dist/*.zip
@@ -113,25 +126,25 @@ jobs:
       - name: Download Android Artifact
         uses: actions/download-artifact@v4
         with:
-          name: Windows-Crasher-Android-v2.6.0-APK
+          name: Windows-Crasher-Android-v${{ env.APP_VERSION }}-APK
           path: release-assets/
 
       - name: Download Windows and Web Artifacts
         uses: actions/download-artifact@v4
         continue-on-error: true
         with:
-          name: Windows-Crasher-v2.6.0-Windows-and-Web
+          name: Windows-Crasher-v${{ env.APP_VERSION }}-Windows-and-Web
           path: release-assets/
 
       - name: Publish to GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: "v2.6.0"
-          name: "Windows Crasher v2.6.0"
+          tag_name: "v${{ env.APP_VERSION }}"
+          name: "Windows Crasher v${{ env.APP_VERSION }}"
           draft: false
           prerelease: false
           body: |
-            # ⚠️ Windows Crasher v2.6.0
+            # ⚠️ Windows Crasher v${{ env.APP_VERSION }}
             
             Videojuego incremental y de benchmarking de hardware al filo de la pantalla azul.
             
@@ -140,8 +153,9 @@ jobs:
             👉 [ko-fi.com/danielfbr](https://ko-fi.com/danielfbr)
             
             ### 📦 Descargas Disponibles
-            - 📱 **Android APK**: `Windows-Crasher-v2.6.0-Android.apk` (Instalable en cualquier móvil Android)
-            - 🌐 **Web HTML5**: `Windows-Crasher-v2.6.0-HTML5-Web.zip` (Para subir a Itch.io y jugar en navegador)
+            - 📱 **Android APK**: `Windows-Crasher-v${{ env.APP_VERSION }}-Android.apk` (Instalable en cualquier móvil Android)
+            - 🖥️ **Windows Portable**: `Windows-Crasher-v${{ env.APP_VERSION }}-Portable.exe` (Ejecutable sin instalar)
+            - 🌐 **Web HTML5**: `Windows-Crasher-v${{ env.APP_VERSION }}-HTML5-Web.zip` (Para subir a Itch.io y jugar en navegador)
           files: release-assets/*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -2,6 +2,15 @@
 
 Este documento mantiene un registro cronológico de todas las versiones, modificaciones y mejoras implementadas en el proyecto para facilitar el contexto y seguimiento a usuarios y agentes.
 
+## [v2.7.1] - 2026-09-04
+### Migración completa del Workflow CI/CD de npm a pnpm
+- **Workflow GitHub Actions actualizado**: Se reemplazó `npm ci` por `pnpm install --frozen-lockfile` en todos los jobs.
+- **Acción pnpm/action-setup@v4**: Se añadió la instalación oficial de pnpm v9 en los runners de CI.
+- **Versiones centralizadas**: Se extrajo `APP_VERSION` como variable de entorno global (`env`) para evitar versiones hardcodeadas.
+- **Actualización a v2.7.0**: Todos los nombres de artefactos y el release apuntan a la versión correcta.
+- **Script `pack:web:ci`**: Se añadió script alternativo compatible con Linux/macOS para empaquetar la web en CI.
+- **Cache de pnpm**: Se configuró `actions/setup-node` para cachear el store de `pnpm` en lugar de `npm`.
+
 ## [v2.6.0] - 2026-09-04
 ### Preparación Completa para Publicación: Instalación de Android Studio y OpenJDK 17, Paquete Web HTML5 para Itch.io, Workflow CI/CD Cloud y Atribución a Daniel Valimaña
 - **Atribución Completa del Creador y Perfil de Ko-fi**:

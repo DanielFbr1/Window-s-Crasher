@@ -1,6 +1,6 @@
 {
   "name": "windows-crasher",
-  "version": "2.6.0",
+  "version": "2.7.0",
   "description": "Videojuego incremental y de benchmarking de hardware con Watchdog de seguridad",
   "main": "src/main/main.js",
   "scripts": {
@@ -9,7 +9,8 @@
     "dist": "electron-builder",
     "dist:win": "electron-builder --win",
     "dist:portable": "electron-builder --win portable",
-    "pack:web": "powershell -NoProfile -Command \"if (-not (Test-Path dist)) { New-Item -ItemType Directory -Path dist }; Compress-Archive -Path 'src/renderer/*' -DestinationPath 'dist/Windows-Crasher-v2.6.0-HTML5-Web.zip' -Force\"",
+    "pack:web": "powershell -NoProfile -Command \"if (-not (Test-Path dist)) { New-Item -ItemType Directory -Path dist }; Compress-Archive -Path 'src/renderer/*' -DestinationPath 'dist/Windows-Crasher-v2.7.0-HTML5-Web.zip' -Force\"",
+    "pack:web:ci": "mkdir -p dist && cd src/renderer && zip -r ../../dist/Windows-Crasher-v2.7.0-HTML5-Web.zip . -x '*.DS_Store'",
     "cap:sync": "cap sync android",
     "cap:open": "cap open android"
   },
