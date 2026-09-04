@@ -1,4 +1,4 @@
-// Motor de renderizado visual interactivo de procesos, pestañas y multiplicadores - v1.4.0
+// Motor de renderizado visual interactivo de procesos, pestañas y multiplicadores - v1.5.0
 class SystemChaosVisualizer {
   constructor(canvasElement) {
     this.canvas = canvasElement;

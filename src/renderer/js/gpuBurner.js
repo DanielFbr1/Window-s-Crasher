@@ -1,7 +1,9 @@
 // Módulo WebGL 2.0 para sobrecarga intensiva de GPU mediante Raymarching Shader
 class GpuBurner {
   constructor(canvasElement) {
-    this.canvas = canvasElement;
+    this.canvas = canvasElement || document.createElement('canvas');
+    this.canvas.width = 320;
+    this.canvas.height = 240;
     this.gl = null;
     this.program = null;
     this.animationFrameId = null;

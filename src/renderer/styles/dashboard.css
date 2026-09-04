@@ -404,90 +404,176 @@ main {
   transform: translateY(1px);
 }
 
-/* Osciloscopio en Columna Izquierda */
-.chart-container-left {
-  height: 125px;
-  position: relative;
-  border: 1px solid var(--border-subtle);
+/* Tasa de Flujo de Estrés y Racha en Columna Izquierda */
+.flow-rate-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(0, 240, 255, 0.04);
+  border: 1px solid rgba(0, 240, 255, 0.2);
   border-radius: var(--radius-sm);
-  background: rgba(3, 5, 8, 0.6);
-  overflow: hidden;
+  padding: 8px 12px;
   margin-bottom: 10px;
 }
 
-#history-canvas {
-  width: 100%;
-  height: 100%;
-  display: block;
+.flow-rate-col {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
-/* Taller de Overclock / Upgrades */
-.overclock-section {
+.flow-rate-col.text-right {
+  align-items: flex-end;
+}
+
+.flow-label,
+.streak-label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+}
+
+.flow-rate-val-group {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.flow-val {
+  font-family: var(--font-mono);
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--neon-cyan);
+  font-variant-numeric: tabular-nums;
+  transition: color 0.2s ease;
+}
+
+.flow-val.high-stress {
+  color: var(--neon-amber);
+}
+
+.flow-val.critical-stress {
+  color: var(--neon-crimson);
+}
+
+.flow-unit {
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  font-weight: 600;
+}
+
+.streak-badge-container {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.streak-badge {
+  font-size: 0.7rem;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-dim);
+  border: 1px solid var(--border-subtle);
+  letter-spacing: 0.5px;
+  transition: all 0.2s ease;
+}
+
+.streak-badge.active-1 {
+  background: rgba(255, 183, 0, 0.15);
+  color: var(--neon-amber);
+  border-color: rgba(255, 183, 0, 0.4);
+}
+
+.streak-badge.active-2 {
+  background: rgba(255, 85, 0, 0.2);
+  color: #ff6a00;
+  border-color: rgba(255, 85, 0, 0.5);
+}
+
+.streak-badge.active-3 {
+  background: rgba(255, 0, 68, 0.25);
+  color: var(--neon-crimson);
+  border-color: rgba(255, 0, 68, 0.6);
+  box-shadow: 0 0 10px rgba(255, 0, 68, 0.3);
+}
+
+.streak-timer {
+  font-size: 0.75rem;
+  font-family: var(--font-mono);
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Hitos de Sobrecarga (Milestones automáticos) */
+.milestones-section {
   margin-top: auto;
   padding-top: 6px;
   border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
 
-.overclock-header {
+.milestones-header {
   margin-bottom: 6px;
 }
 
-.overclock-subtext {
-  font-size: 0.75rem;
+.milestones-subtext {
+  font-size: 0.7rem;
   color: var(--text-dim);
 }
 
-.upgrade-item {
+.milestone-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
   background: rgba(255, 255, 255, 0.02);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-sm);
-  padding: 5px 8px;
-  margin-bottom: 4px;
+  padding: 6px 10px;
+  margin-bottom: 5px;
+  transition: border-color 0.2s ease, background 0.2s ease;
 }
 
-.upgrade-info {
+.milestone-item.unlocked {
+  background: rgba(0, 255, 136, 0.06);
+  border-color: rgba(0, 255, 136, 0.35);
+}
+
+.milestone-info {
   display: flex;
   flex-direction: column;
+  gap: 1px;
 }
 
-.upgrade-title {
+.milestone-title {
   font-size: 0.75rem;
   font-weight: 700;
   color: var(--text-main);
 }
 
-.upgrade-effect {
-  font-size: 0.75rem;
+.milestone-req {
+  font-size: 0.65rem;
   color: var(--text-dim);
 }
 
-.btn-buy-upgrade {
-  background: rgba(0, 255, 136, 0.12);
-  border: 1px solid rgba(0, 255, 136, 0.4);
-  color: var(--neon-green);
+.milestone-badge {
   font-family: var(--font-mono);
-  font-size: 0.75rem;
+  font-size: 0.65rem;
   font-weight: 700;
-  padding: 3px 8px;
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  transition: background 0.15s ease;
-  font-variant-numeric: tabular-nums;
+  padding: 2px 6px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-muted);
+  letter-spacing: 0.5px;
   white-space: nowrap;
 }
 
-.btn-buy-upgrade:hover:not(:disabled) {
-  background: rgba(0, 255, 136, 0.28);
-}
-
-.btn-buy-upgrade:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-  border-color: rgba(255, 255, 255, 0.1);
-  color: var(--text-muted);
+.milestone-item.unlocked .milestone-badge {
+  background: rgba(0, 255, 136, 0.2);
+  color: var(--neon-green);
+  border: 1px solid rgba(0, 255, 136, 0.4);
 }
 
 /* Columna Central: Agujas y Viewport de Animación */
@@ -608,19 +694,19 @@ main {
   letter-spacing: 0.5px;
 }
 
-/* Columna Derecha: GPU, Multiplicadores Compactos, Parámetros y Pánico */
-.gpu-canvas-container {
+/* Columna Derecha: Osciloscopio Reubicado, Multiplicadores Compactos, Parámetros y Pánico */
+.chart-container-right {
   width: 100%;
-  height: 140px;
+  height: 125px;
   border-radius: var(--radius-sm);
   overflow: hidden;
   border: 1px solid var(--border-subtle);
   margin-bottom: 10px;
-  background: #020305;
+  background: rgba(2, 3, 5, 0.75);
   position: relative;
 }
 
-#gpu-canvas {
+#history-canvas {
   width: 100%;
   height: 100%;
   display: block;
@@ -883,6 +969,33 @@ footer {
   font-size: 1.25rem;
   padding: 4px 14px;
   border-radius: var(--radius-sm);
+  transition: all 0.2s ease;
+}
+
+.bsod-tier-badge.tier-s {
+  background: #ff0044;
+  color: #ffffff;
+  box-shadow: 0 0 16px rgba(255, 0, 68, 0.6);
+}
+
+.bsod-tier-badge.tier-a {
+  background: #ffb700;
+  color: #0b101b;
+}
+
+.bsod-tier-badge.tier-b {
+  background: #00f0ff;
+  color: #0b101b;
+}
+
+.bsod-tier-badge.tier-c {
+  background: #00ff88;
+  color: #0b101b;
+}
+
+.bsod-tier-badge.tier-d {
+  background: #475569;
+  color: #ffffff;
 }
 
 .bsod-tier-title {
@@ -894,7 +1007,8 @@ footer {
 /* Cuadrícula compacta de telemetría */
 .bsod-quick-stats {
   display: flex;
-  gap: 24px;
+  flex-wrap: wrap;
+  gap: 10px 24px;
   font-size: 0.875rem;
   font-weight: 400;
   opacity: 0.95;

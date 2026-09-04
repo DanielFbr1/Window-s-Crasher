@@ -1,14 +1,23 @@
-// Controlador principal del juego y lógica de benchmarking - Windows Crasher v1.4.0
+// Controlador principal del juego y lógica de benchmarking - Windows Crasher v1.5.0
 class WindowsCrasherApp {
   constructor() {
-    this.appVersion = 'v1.4.0';
+    this.appVersion = 'v1.5.0';
     this.score = 0;
     this.tabsCount = 0;
+    this.peakTabs = 0;
     this.baseMultiplier = 1.0;
     this.currentRiskMultiplier = 1.0;
+    this.streakMultiplier = 1.0;
     this.riskZoneName = '';
     this.gameStartTime = Date.now();
     this.isGameOver = false;
+
+    // Métricas de estrés continuo y racha (Anti-AFK)
+    this.currentFlowRate = 0;
+    this.peakFlowRate = 0;
+    this.highStressSeconds = 0;      // Tiempo total en estrés elevado (>75%)
+    this.stressStreakSeconds = 0;     // Racha continua en zona de peligro (>80%)
+    this.totalStressSeconds = 0;      // Supervivencia efectiva bajo estrés activo
 
     // Persistencia y récords (localStorage)
     this.highScore = parseInt(localStorage.getItem('wc_high_score') || '0', 10);
@@ -16,11 +25,11 @@ class WindowsCrasherApp {
     this.longestSurvival = parseInt(localStorage.getItem('wc_longest_time') || '0', 10);
     this.totalCrashes = parseInt(localStorage.getItem('wc_total_crashes') || '0', 10);
 
-    // Sistema de Mejoras (Taller de Overclock)
-    this.upgrades = {
-      ramOptimization: false,   // Reduce peso por pestaña de 64MB a 48MB
-      frequencyBoost: false,    // +50% ganancia de puntuación por tick
-      cryogenicCooling: false    // +0.5x multiplicador permanente
+    // Sistema de Hitos de Sobrecarga (Desbloqueo automático por estrés, sin gastar puntos)
+    this.milestones = {
+      ramOpt: false,       // 12 pestañas vivas -> pestañas a 48MB
+      freqBoost: false,    // >75% carga por 15s -> +50% pts/s
+      cryoCooling: false   // 2+ multiplicadores activos simultáneos -> +0.5x multiplicador
     };
     this.scoreFreqMultiplier = 1.0;
     this.mbPerTab = 64;
@@ -66,19 +75,18 @@ class WindowsCrasherApp {
     // Mostrar récord guardado
     this.updateHighScoreDisplay();
 
-    // Inicializar visualizador de agujas y gráficas
+    // Inicializar visualizador de agujas y osciloscopio (ahora en columna derecha)
     this.visualizer = new window.HardwareVisualizer();
 
-    // Inicializar visualizador de animación de ventanas y caos
+    // Inicializar visualizador de animación de ventanas y caos en tiempo real
     const chaosCanvas = document.getElementById('chaos-canvas');
     if (chaosCanvas && window.SystemChaosVisualizer) {
       this.tabVisualizer = new window.SystemChaosVisualizer(chaosCanvas);
     }
 
-    // Inicializar módulo GPU
-    const gpuCanvas = document.getElementById('gpu-canvas');
-    if (gpuCanvas) {
-      this.gpuBurner = new window.GpuBurner(gpuCanvas);
+    // Inicializar módulo GPU (ejecución offscreen que estresa la GPU sin requerir canvas en DOM)
+    if (window.GpuBurner) {
+      this.gpuBurner = new window.GpuBurner();
     }
 
     // Configurar escuchadores de eventos del DOM
@@ -169,56 +177,49 @@ class WindowsCrasherApp {
       btnCopyReport.addEventListener('click', () => this.copyCrashReport());
     }
 
-    // Taller de Overclock: Botones de Compra
-    this.setupUpgradeButtons();
+    // Hitos automáticos inicializados
+    this.checkMilestones();
   }
 
-  setupUpgradeButtons() {
-    // 1. Compresión de RAM
-    const btnRamOpt = document.getElementById('btn-upgrade-ram-opt');
-    if (btnRamOpt) {
-      btnRamOpt.addEventListener('click', () => {
-        if (!this.upgrades.ramOptimization && this.score >= 500) {
-          this.score -= 500;
-          this.upgrades.ramOptimization = true;
-          this.mbPerTab = 48;
-          const mbText = document.getElementById('mb-per-tab-text');
-          if (mbText) mbText.textContent = '48';
-          btnRamOpt.textContent = '✓ ACTIVO';
-          btnRamOpt.disabled = true;
-          this.soundFx.playUpgrade();
-        }
-      });
+  checkMilestones() {
+    if (this.isGameOver) return;
+
+    // Hito 1: Compresión de RAM (12 pestañas vivas simultáneas)
+    if (!this.milestones.ramOpt && this.tabsCount >= 12) {
+      this.milestones.ramOpt = true;
+      this.mbPerTab = 48;
+      const mbText = document.getElementById('mb-per-tab-text');
+      if (mbText) mbText.textContent = '48';
+      const elStatus = document.getElementById('status-ram-opt');
+      const elCard = document.getElementById('milestone-ram-opt');
+      if (elStatus) elStatus.textContent = 'DESBLOQUEADO (48MB)';
+      if (elCard) elCard.classList.add('unlocked');
+      this.soundFx.playUpgrade();
     }
 
-    // 2. Multiplicador de Frecuencia
-    const btnFreq = document.getElementById('btn-upgrade-freq');
-    if (btnFreq) {
-      btnFreq.addEventListener('click', () => {
-        if (!this.upgrades.frequencyBoost && this.score >= 1500) {
-          this.score -= 1500;
-          this.upgrades.frequencyBoost = true;
-          this.scoreFreqMultiplier = 1.5;
-          btnFreq.textContent = '✓ ACTIVO';
-          btnFreq.disabled = true;
-          this.soundFx.playUpgrade();
-        }
-      });
+    // Hito 2: Inyección de Frecuencia (>75% de carga por 15 segundos)
+    if (!this.milestones.freqBoost && this.highStressSeconds >= 15) {
+      this.milestones.freqBoost = true;
+      this.scoreFreqMultiplier = 1.5;
+      const elStatus = document.getElementById('status-freq-boost');
+      const elCard = document.getElementById('milestone-freq-boost');
+      if (elStatus) elStatus.textContent = 'DESBLOQUEADO (+50%)';
+      if (elCard) elCard.classList.add('unlocked');
+      this.soundFx.playUpgrade();
     }
 
-    // 3. Refrigeración Criogénica
-    const btnCooling = document.getElementById('btn-upgrade-cooling');
-    if (btnCooling) {
-      btnCooling.addEventListener('click', () => {
-        if (!this.upgrades.cryogenicCooling && this.score >= 4000) {
-          this.score -= 4000;
-          this.upgrades.cryogenicCooling = true;
-          btnCooling.textContent = '✓ ACTIVO';
-          btnCooling.disabled = true;
-          this.recalculateMultiplier();
-          this.soundFx.playUpgrade();
-        }
-      });
+    // Hito 3: Disipador Criogénico (2 o más multiplicadores activos)
+    const activeMultCount = (this.isCpuMelterActive ? 1 : 0) +
+                            (this.isRamEaterActive ? 1 : 0) +
+                            (this.gpuBurner && this.gpuBurner.isActive ? 1 : 0);
+    if (!this.milestones.cryoCooling && activeMultCount >= 2) {
+      this.milestones.cryoCooling = true;
+      const elStatus = document.getElementById('status-cryo-cooling');
+      const elCard = document.getElementById('milestone-cryo-cooling');
+      if (elStatus) elStatus.textContent = 'DESBLOQUEADO (+0.5x)';
+      if (elCard) elCard.classList.add('unlocked');
+      this.recalculateMultiplier();
+      this.soundFx.playUpgrade();
     }
   }
 
@@ -303,17 +304,21 @@ class WindowsCrasherApp {
     if (this.isGameOver) return;
 
     this.tabsCount += count;
-    document.getElementById('tabs-count-display').textContent = this.tabsCount;
+    if (this.tabsCount > this.peakTabs) {
+      this.peakTabs = this.tabsCount;
+    }
+    const tabCountEl = document.getElementById('tabs-count-display');
+    if (tabCountEl) tabCountEl.textContent = this.tabsCount;
 
     // Asignar memoria física ligera para cada lote de pestañas (~64MB o 48MB si está comprimido)
     for (let i = 0; i < count; i++) {
       this.ramEater.allocateChunkMB(this.mbPerTab);
     }
 
-    // Puntuación inmediata por click que escala con la dificultad actual
+    // Puntuación inmediata por click que escala con la dificultad actual y racha de estrés
     const difficultyScaling = 1 + Math.pow(this.tabsCount / 8, 1.25);
-    const clickMultiplier = this.baseMultiplier * this.currentRiskMultiplier * this.scoreFreqMultiplier;
-    const instantClickPoints = Math.round(count * 15 * difficultyScaling * clickMultiplier);
+    const clickMultiplier = this.baseMultiplier * this.currentRiskMultiplier * this.streakMultiplier * this.scoreFreqMultiplier;
+    const instantClickPoints = Math.round(count * 20 * difficultyScaling * clickMultiplier);
     this.score += instantClickPoints;
 
     // Disparar animación de ventanas virtuales en el viewport central
@@ -322,6 +327,7 @@ class WindowsCrasherApp {
     }
 
     this.updateAllocatedRamUI();
+    this.checkMilestones();
   }
 
   toggleCpuMelter() {
@@ -440,13 +446,14 @@ class WindowsCrasherApp {
 
   recalculateMultiplier() {
     let mult = 1.0;
-    if (this.upgrades.cryogenicCooling) mult += 0.5;
+    if (this.milestones.cryoCooling) mult += 0.5;
     if (this.isCpuMelterActive) mult += 3.0;
     if (this.isRamEaterActive) mult += 2.5;
     if (this.gpuBurner && this.gpuBurner.isActive) mult += 2.0;
 
     this.baseMultiplier = mult;
     this.updateMultiplierUI();
+    this.checkMilestones();
   }
 
   updateMultiplierUI() {
@@ -484,17 +491,86 @@ class WindowsCrasherApp {
 
       this.updateMultiplierUI();
 
-      // Puntuación no lineal según pestañas vivas + factor de saturación de recursos
-      const tabPower = this.tabsCount * (1 + (this.tabsCount * 0.04));
-      const hardwareFactor = (cpu + ram) / 10;
-      const tickBase = (tabPower * this.baseMultiplier) + hardwareFactor;
-      const tickScore = (tickBase * 0.1) * this.currentRiskMultiplier * this.scoreFreqMultiplier;
+      // Multiplicadores activos
+      const activeMultCount = (this.isCpuMelterActive ? 1 : 0) +
+                              (this.isRamEaterActive ? 1 : 0) +
+                              (this.gpuBurner && this.gpuBurner.isActive ? 1 : 0);
 
-      this.score += tickScore;
+      // GESTIÓN DE RACHA Y TIEMPO BAJO ESTRÉS (Anti-AFK)
+      if (ram >= 78 || cpu >= 88) {
+        this.stressStreakSeconds += 0.1;
+        this.highStressSeconds += 0.1;
+        this.totalStressSeconds += 0.1;
+      } else if (ram < 68 && cpu < 75) {
+        this.stressStreakSeconds = Math.max(0, this.stressStreakSeconds - 0.2);
+      }
 
+      // Nivel de Racha de Estrés
+      let streakBadgeText = 'x1.0 BASE';
+      let streakClass = 'streak-badge';
+      if (this.stressStreakSeconds >= 45) {
+        this.streakMultiplier = 4.0;
+        streakBadgeText = 'x4.0 CRÍTICO';
+        streakClass = 'streak-badge active-3';
+      } else if (this.stressStreakSeconds >= 25) {
+        this.streakMultiplier = 2.5;
+        streakBadgeText = 'x2.5 SOBRECARGA';
+        streakClass = 'streak-badge active-2';
+      } else if (this.stressStreakSeconds >= 10) {
+        this.streakMultiplier = 1.5;
+        streakBadgeText = 'x1.5 CALIENTE';
+        streakClass = 'streak-badge active-1';
+      } else {
+        this.streakMultiplier = 1.0;
+      }
+
+      // Si el jugador está completamente AFK (0 pestañas y sin multiplicadores), flujo = 0 absoluto
+      if (this.tabsCount === 0 && activeMultCount === 0) {
+        this.currentFlowRate = 0;
+      } else {
+        // Densidad de Estrés no lineal
+        const loadNorm = (cpu + ram) / 100;
+        const stressDensityFactor = Math.pow(Math.max(0.18, loadNorm), 1.8);
+        const baseActiveIntensity = (this.tabsCount * 22) + (activeMultCount * 42);
+        const totalFlowRate = baseActiveIntensity * stressDensityFactor * this.baseMultiplier * this.currentRiskMultiplier * this.streakMultiplier * this.scoreFreqMultiplier;
+
+        this.currentFlowRate = Math.round(totalFlowRate);
+        if (this.currentFlowRate > this.peakFlowRate) {
+          this.peakFlowRate = this.currentFlowRate;
+        }
+
+        // Incrementar puntuación cada 100ms
+        this.score += (totalFlowRate * 0.1);
+      }
+
+      // Actualizar UI de Puntuación
       const scoreEl = document.getElementById('score-display');
       if (scoreEl) {
         scoreEl.textContent = Math.floor(this.score).toLocaleString();
+      }
+
+      // Actualizar UI de Tasa de Flujo en vivo
+      const flowEl = document.getElementById('flow-rate-display');
+      if (flowEl) {
+        flowEl.textContent = `+${this.currentFlowRate.toLocaleString()}`;
+        if (this.currentFlowRate >= 600) {
+          flowEl.className = 'flow-val critical-stress';
+        } else if (this.currentFlowRate >= 220) {
+          flowEl.className = 'flow-val high-stress';
+        } else {
+          flowEl.className = 'flow-val';
+        }
+      }
+
+      // Actualizar UI de Racha
+      const streakBadgeEl = document.getElementById('streak-badge');
+      if (streakBadgeEl) {
+        streakBadgeEl.textContent = streakBadgeText;
+        streakBadgeEl.className = streakClass;
+      }
+      const streakTimerEl = document.getElementById('streak-timer');
+      if (streakTimerEl) {
+        streakTimerEl.textContent = `${Math.floor(this.stressStreakSeconds)}s`;
       }
 
       // Actualizar High Score si se supera en tiempo real
@@ -513,26 +589,9 @@ class WindowsCrasherApp {
         timeEl.textContent = `${mins}:${secs}`;
       }
 
-      // Actualizar estado de botones del Taller de Overclock
-      this.updateUpgradeButtonStates();
+      // Comprobar si se desbloqueó algún Hito de Sobrecarga
+      this.checkMilestones();
     }, 100);
-  }
-
-  updateUpgradeButtonStates() {
-    const btnRamOpt = document.getElementById('btn-upgrade-ram-opt');
-    if (btnRamOpt && !this.upgrades.ramOptimization) {
-      btnRamOpt.disabled = this.score < 500;
-    }
-
-    const btnFreq = document.getElementById('btn-upgrade-freq');
-    if (btnFreq && !this.upgrades.frequencyBoost) {
-      btnFreq.disabled = this.score < 1500;
-    }
-
-    const btnCooling = document.getElementById('btn-upgrade-cooling');
-    if (btnCooling && !this.upgrades.cryogenicCooling) {
-      btnCooling.disabled = this.score < 4000;
-    }
   }
 
   updateTelemetryUI(metrics) {
@@ -595,21 +654,36 @@ class WindowsCrasherApp {
     return 'CRITICAL_HARDWARE_LIMIT_EXCEEDED';
   }
 
-  // Evaluación objetiva de Tiers basada en resistencia, pestañas y multiplicadores
-  evaluatePlayerRank(finalScore, tabs, survivalSec) {
-    if ((survivalSec >= 90 && tabs >= 30) || tabs >= 60 || finalScore >= 50000) {
-      return { tier: 'TIER S', title: 'DESTRUCTOR DE SILICIO' };
+  // Evaluación objetiva de Tiers basada en intensidad de estrés (pts/s), pestañas y riesgo
+  evaluatePlayerRank(finalScore, peakTabs, survivalSec, totalStressSec, avgRate) {
+    // Si el jugador estuvo AFK o inactivo sin abrir apenas pestañas ni generar estrés
+    if (peakTabs === 0 && avgRate < 25) {
+      return { tier: 'TIER D', title: 'INACTIVO / SIN ESTRÉS', tierClass: 'tier-d' };
     }
-    if (survivalSec >= 45 || tabs >= 35 || finalScore >= 20000) {
-      return { tier: 'TIER A', title: 'OVERCLOCKER MAESTRO' };
+
+    // TIER S: Destructor de Silicio
+    // Logrado con tasa extrema (>=600 pts/s) o sosteniendo 30+ pestañas bajo estrés crítico
+    if (avgRate >= 600 || (peakTabs >= 30 && totalStressSec >= 25) || (finalScore >= 50000 && avgRate >= 350)) {
+      return { tier: 'TIER S', title: 'DESTRUCTOR DE SILICIO', tierClass: 'tier-s' };
     }
-    if (survivalSec >= 20 || tabs >= 15 || finalScore >= 8000) {
-      return { tier: 'TIER B', title: 'STRESS TESTER' };
+
+    // TIER A: Overclocker Maestro
+    if (avgRate >= 260 || (peakTabs >= 18 && totalStressSec >= 12) || (finalScore >= 18000 && avgRate >= 150)) {
+      return { tier: 'TIER A', title: 'OVERCLOCKER MAESTRO', tierClass: 'tier-a' };
     }
-    if (survivalSec >= 10 || finalScore >= 2000) {
-      return { tier: 'TIER C', title: 'OPERADOR ESTÁNDAR' };
+
+    // TIER B: Stress Tester
+    if (avgRate >= 90 || (peakTabs >= 10 && totalStressSec >= 5) || (finalScore >= 6000 && avgRate >= 50)) {
+      return { tier: 'TIER B', title: 'STRESS TESTER', tierClass: 'tier-b' };
     }
-    return { tier: 'TIER D', title: 'COLAPSO TEMPRANO' };
+
+    // TIER C: Operador Cauteloso
+    if (avgRate >= 20 || peakTabs >= 3 || finalScore >= 1000) {
+      return { tier: 'TIER C', title: 'OPERADOR CAUTELOSO', tierClass: 'tier-c' };
+    }
+
+    // TIER D: Colapso Temprano
+    return { tier: 'TIER D', title: 'COLAPSO TEMPRANO', tierClass: 'tier-d' };
   }
 
   triggerGameOver(reason, metrics) {
@@ -641,6 +715,7 @@ class WindowsCrasherApp {
     const mins = Math.floor(elapsedSec / 60).toString().padStart(2, '0');
     const secs = (elapsedSec % 60).toString().padStart(2, '0');
     const survivalFormatted = `${mins}:${secs}`;
+    const avgRate = finalScore / Math.max(1, elapsedSec);
 
     const peakCpu = metrics ? (metrics.peakCpu || this.currentMetrics.peakCpu) : this.currentMetrics.peakCpu;
     const peakRam = metrics ? (metrics.peakRam || this.currentMetrics.peakRam) : this.currentMetrics.peakRam;
@@ -652,8 +727,8 @@ class WindowsCrasherApp {
       localStorage.setItem('wc_high_score', this.highScore.toString());
       isNewRecord = true;
     }
-    if (this.tabsCount > this.maxTabs) {
-      this.maxTabs = this.tabsCount;
+    if (this.peakTabs > this.maxTabs) {
+      this.maxTabs = this.peakTabs;
       localStorage.setItem('wc_max_tabs', this.maxTabs.toString());
     }
     if (elapsedSec > this.longestSurvival) {
@@ -667,7 +742,7 @@ class WindowsCrasherApp {
 
     // 5. Evaluar Rango y Stop Code
     const stopCode = this.deriveStopCode(reason);
-    const rankData = this.evaluatePlayerRank(finalScore, this.tabsCount, elapsedSec);
+    const rankData = this.evaluatePlayerRank(finalScore, this.peakTabs, elapsedSec, this.totalStressSeconds, avgRate);
 
     // Guardar reporte forense conciso para portapapeles
     this.lastCrashReport = {
@@ -677,7 +752,8 @@ class WindowsCrasherApp {
       tier: rankData.tier,
       tierTitle: rankData.title,
       score: finalScore,
-      tabs: this.tabsCount,
+      tabs: this.peakTabs,
+      stressRate: `${Math.round(avgRate)} pts/s`,
       survivalTime: survivalFormatted,
       peakCpu: `${peakCpu}%`,
       peakRam: `${peakRam}%`,
@@ -690,13 +766,19 @@ class WindowsCrasherApp {
     if (scoreValEl) scoreValEl.textContent = finalScore.toLocaleString();
 
     const tierBadgeEl = document.getElementById('bsod-tier-badge');
-    if (tierBadgeEl) tierBadgeEl.textContent = rankData.tier;
+    if (tierBadgeEl) {
+      tierBadgeEl.textContent = rankData.tier;
+      tierBadgeEl.className = `bsod-tier-badge ${rankData.tierClass}`;
+    }
 
     const tierTitleEl = document.getElementById('bsod-tier-title');
     if (tierTitleEl) tierTitleEl.textContent = rankData.title;
 
+    const stressRateEl = document.getElementById('modal-stress-rate');
+    if (stressRateEl) stressRateEl.textContent = `${Math.round(avgRate)} pts/s`;
+
     const tabsEl = document.getElementById('modal-tabs');
-    if (tabsEl) tabsEl.textContent = this.tabsCount;
+    if (tabsEl) tabsEl.textContent = this.peakTabs;
 
     const survivalEl = document.getElementById('modal-survival-time');
     if (survivalEl) survivalEl.textContent = survivalFormatted;
@@ -729,6 +811,7 @@ class WindowsCrasherApp {
       `Código de Parada: ${r.stopCode}`,
       `Nivel Alcanzado:  ${r.tier} (${r.tierTitle})`,
       `Puntuación:       ${r.score.toLocaleString()} PTS ${r.isNewRecord ? '[¡RÉCORD!]' : ''}`,
+      `Tasa de Estrés:   ${r.stressRate}`,
       `Pestañas:         ${r.tabs}`,
       `Supervivencia:    ${r.survivalTime}`,
       `Picos de Carga:   RAM ${r.peakRam} | CPU ${r.peakCpu}`,
@@ -758,11 +841,20 @@ class WindowsCrasherApp {
     // Resetear variables internas de la sesión
     this.score = 0;
     this.tabsCount = 0;
+    this.peakTabs = 0;
     this.baseMultiplier = 1.0;
     this.currentRiskMultiplier = 1.0;
+    this.streakMultiplier = 1.0;
     this.riskZoneName = '';
     this.gameStartTime = Date.now();
     this.isGameOver = false;
+
+    // Resetear métricas de estrés y racha
+    this.currentFlowRate = 0;
+    this.peakFlowRate = 0;
+    this.highStressSeconds = 0;
+    this.stressStreakSeconds = 0;
+    this.totalStressSeconds = 0;
 
     // Resetear visualizador de caos
     if (this.tabVisualizer) {
@@ -770,27 +862,47 @@ class WindowsCrasherApp {
       this.tabVisualizer.setMultiplierStates(false, false, false);
     }
 
-    // Resetear mejoras del taller
-    this.upgrades = { ramOptimization: false, frequencyBoost: false, cryogenicCooling: false };
+    // Resetear hitos de sobrecarga
+    this.milestones = { ramOpt: false, freqBoost: false, cryoCooling: false };
     this.scoreFreqMultiplier = 1.0;
     this.mbPerTab = 64;
 
     const mbText = document.getElementById('mb-per-tab-text');
     if (mbText) mbText.textContent = '64';
 
-    const btnRamOpt = document.getElementById('btn-upgrade-ram-opt');
-    if (btnRamOpt) { btnRamOpt.textContent = '500 pts'; btnRamOpt.disabled = true; }
+    const elRamCard = document.getElementById('milestone-ram-opt');
+    const elRamStatus = document.getElementById('status-ram-opt');
+    if (elRamCard) elRamCard.classList.remove('unlocked');
+    if (elRamStatus) elRamStatus.textContent = 'BLOQUEADO';
 
-    const btnFreq = document.getElementById('btn-upgrade-freq');
-    if (btnFreq) { btnFreq.textContent = '1.5k pts'; btnFreq.disabled = true; }
+    const elFreqCard = document.getElementById('milestone-freq-boost');
+    const elFreqStatus = document.getElementById('status-freq-boost');
+    if (elFreqCard) elFreqCard.classList.remove('unlocked');
+    if (elFreqStatus) elFreqStatus.textContent = 'BLOQUEADO';
 
-    const btnCooling = document.getElementById('btn-upgrade-cooling');
-    if (btnCooling) { btnCooling.textContent = '4.0k pts'; btnCooling.disabled = true; }
+    const elCryoCard = document.getElementById('milestone-cryo-cooling');
+    const elCryoStatus = document.getElementById('status-cryo-cooling');
+    if (elCryoCard) elCryoCard.classList.remove('unlocked');
+    if (elCryoStatus) elCryoStatus.textContent = 'BLOQUEADO';
 
     // Resetear textos en la UI
     document.getElementById('score-display').textContent = '0';
     document.getElementById('tabs-count-display').textContent = '0';
     document.getElementById('survival-time').textContent = '00:00';
+
+    const flowEl = document.getElementById('flow-rate-display');
+    if (flowEl) {
+      flowEl.textContent = '+0';
+      flowEl.className = 'flow-val';
+    }
+    const streakBadge = document.getElementById('streak-badge');
+    if (streakBadge) {
+      streakBadge.textContent = 'x1.0 BASE';
+      streakBadge.className = 'streak-badge';
+    }
+    const streakTimer = document.getElementById('streak-timer');
+    if (streakTimer) streakTimer.textContent = '0s';
+
     this.updateMultiplierUI();
     this.updateAllocatedRamUI();
 

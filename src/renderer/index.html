@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Windows Crasher - v1.4.0</title>
+  <title>Windows Crasher - v1.5.0</title>
   <link rel="stylesheet" href="styles/dashboard.css" />
 </head>
 <body>
@@ -13,7 +13,7 @@
     <div class="logo-container">
       <span class="logo-icon">⚡</span>
       <h1>WINDOWS CRASHER</h1>
-      <span class="version-badge" id="app-version-badge">v1.4.0</span>
+      <span class="version-badge" id="app-version-badge">v1.5.0</span>
     </div>
 
     <div class="header-status">
@@ -58,6 +58,24 @@
         <div class="score-big" id="score-display">0</div>
       </div>
 
+      <!-- Tasa de Flujo de Puntuación & Racha de Estrés en Tiempo Real -->
+      <div class="flow-rate-card">
+        <div class="flow-rate-col">
+          <span class="flow-label">TASA DE FLUJO</span>
+          <div class="flow-rate-val-group">
+            <span class="flow-val" id="flow-rate-display">+0</span>
+            <span class="flow-unit">pts/s</span>
+          </div>
+        </div>
+        <div class="flow-rate-col text-right">
+          <span class="streak-label">RACHA DE ESTRÉS</span>
+          <div class="streak-badge-container">
+            <span class="streak-badge" id="streak-badge">x1.0 BASE</span>
+            <span class="streak-timer" id="streak-timer">0s</span>
+          </div>
+        </div>
+      </div>
+
       <div class="stats-grid">
         <div class="stat-box">
           <div class="stat-label">Pestañas Vivas</div>
@@ -79,54 +97,35 @@
         +10 PESTAÑAS EN RÁFAGA
       </button>
 
-      <!-- Osciloscopio de Telemetría (Reubicado en Columna Izquierda) -->
-      <div class="card-title chart-header-spacing">
-        <span>Osciloscopio (15s)</span>
-        <div class="chart-legend-group">
-          <span class="legend-cpu">■ CPU</span>
-          <span class="legend-ram">■ RAM</span>
-          <span class="legend-limit">-- 92%</span>
-        </div>
-      </div>
-      <div class="chart-container-left">
-        <canvas id="history-canvas"></canvas>
-      </div>
-
-      <!-- Taller de Overclock (Upgrades) -->
-      <div class="overclock-section">
-        <div class="card-title overclock-header">
-          <span>Taller de Overclock</span>
-          <span class="overclock-subtext">Gasta Puntuación</span>
+      <!-- Hitos de Sobrecarga (Desbloqueo por maestría y estrés sostenido) -->
+      <div class="milestones-section">
+        <div class="card-title milestones-header">
+          <span>Hitos de Sobrecarga</span>
+          <span class="milestones-subtext">Automáticos (Sin Gastar Puntos)</span>
         </div>
 
-        <div class="upgrade-item">
-          <div class="upgrade-info">
-            <span class="upgrade-title">Compresión RAM</span>
-            <span class="upgrade-effect">Pestañas a 48MB</span>
+        <div class="milestone-item" id="milestone-ram-opt">
+          <div class="milestone-info">
+            <span class="milestone-title">Compresión RAM (48MB)</span>
+            <span class="milestone-req">Desbloquea con 12 pestañas vivas</span>
           </div>
-          <button id="btn-upgrade-ram-opt" class="btn-buy-upgrade" data-cost="500">
-            500 pts
-          </button>
+          <span class="milestone-badge" id="status-ram-opt">BLOQUEADO</span>
         </div>
 
-        <div class="upgrade-item">
-          <div class="upgrade-info">
-            <span class="upgrade-title">Overclock Frecuencia</span>
-            <span class="upgrade-effect">+50% Puntos/tick</span>
+        <div class="milestone-item" id="milestone-freq-boost">
+          <div class="milestone-info">
+            <span class="milestone-title">Overclock Frecuencia (+50%)</span>
+            <span class="milestone-req">Mantén &gt;75% de carga por 15s</span>
           </div>
-          <button id="btn-upgrade-freq" class="btn-buy-upgrade" data-cost="1500">
-            1.5k pts
-          </button>
+          <span class="milestone-badge" id="status-freq-boost">BLOQUEADO</span>
         </div>
 
-        <div class="upgrade-item">
-          <div class="upgrade-info">
-            <span class="upgrade-title">Disipador Criogénico</span>
-            <span class="upgrade-effect">+0.5x Multiplicador</span>
+        <div class="milestone-item" id="milestone-cryo-cooling">
+          <div class="milestone-info">
+            <span class="milestone-title">Disipador Criogénico (+0.5x)</span>
+            <span class="milestone-req">Activa 2+ multiplicadores juntos</span>
           </div>
-          <button id="btn-upgrade-cooling" class="btn-buy-upgrade" data-cost="4000">
-            4.0k pts
-          </button>
+          <span class="milestone-badge" id="status-cryo-cooling">BLOQUEADO</span>
         </div>
       </div>
     </section>
@@ -193,15 +192,20 @@
       </div>
     </section>
 
-    <!-- Columna Derecha: GPU Viewport, Multiplicadores Compactos, Diagnóstico y Pánico -->
+    <!-- Columna Derecha: Osciloscopio, Multiplicadores Compactos, Diagnóstico y Pánico -->
     <section class="card">
       <div class="card-title">
-        <span>Viewport GPU WebGL 2.0</span>
+        <span>Osciloscopio (15s)</span>
+        <div class="chart-legend-group">
+          <span class="legend-cpu">■ CPU</span>
+          <span class="legend-ram">■ RAM</span>
+          <span class="legend-limit">-- 92%</span>
+        </div>
       </div>
 
-      <!-- Canvas de Shader GPU -->
-      <div class="gpu-canvas-container">
-        <canvas id="gpu-canvas" width="300" height="140"></canvas>
+      <!-- Canvas del Osciloscopio (Reubicado en Columna Derecha) -->
+      <div class="chart-container-right">
+        <canvas id="history-canvas"></canvas>
       </div>
 
       <!-- Multiplicadores Pesados Compactos (Minimalistas: solo nombre y x) -->
@@ -262,7 +266,7 @@
   <!-- Pie de página con versión explícita y atajos -->
   <footer>
     <div>
-      Windows Crasher Engine • Versión <strong class="text-cyan" id="footer-version-text">v1.4.0</strong>
+      Windows Crasher Engine • Versión <strong class="text-cyan" id="footer-version-text">v1.5.0</strong>
     </div>
     <div class="footer-shortcuts">
       <span><span class="shortcut-pill">ESPACIO</span> +1 Pestaña</span>
@@ -274,7 +278,7 @@
   </footer>
 
   <!-- =====================================================================
-       PANTALLA DE GAME OVER: AUTÉNTICA BSOD MINIMALISTA DE WINDOWS (v1.4.0)
+       PANTALLA DE GAME OVER: AUTÉNTICA BSOD MINIMALISTA DE WINDOWS (v1.5.0)
        ===================================================================== -->
   <div id="game-over-modal" class="modal-overlay">
     <div class="bsod-minimal">
@@ -301,8 +305,9 @@
         </div>
       </div>
 
-      <!-- Estadísticas rápidas compactas -->
+      <!-- Estadísticas rápidas compactas con Tasa Media de Estrés -->
       <div class="bsod-quick-stats">
+        <span class="bsod-stat-item">Tasa Media Estrés: <strong id="modal-stress-rate">0 pts/s</strong></span>
         <span class="bsod-stat-item">Pestañas: <strong id="modal-tabs">0</strong></span>
         <span class="bsod-stat-item">Supervivencia: <strong id="modal-survival-time">00:00</strong></span>
         <span class="bsod-stat-item">Pico RAM: <strong id="modal-peak-ram">0%</strong></span>

@@ -4,6 +4,43 @@ Este documento mantiene un registro cronológico de todas las versiones, modific
 
 ---
 
+## [v1.5.0] - 2026-09-04
+### Osciloscopio en Panel Derecho, Motor de Estrés Anti-AFK, Hitos Automáticos y Tiers por Tasa de Flujo
+- **Reubicación del Osciloscopio y Eliminación del Viewport GPU**:
+  - El canvas visible de shader de la GPU (`#gpu-canvas`) ha sido eliminado de la interfaz gráfica. El motor WebGL de raymarching intensivo ahora corre de forma offscreen/invisible, manteniendo el botón `🌌 GPU BURNER` activo para estresar la gráfica y otorgar el bono de `+2.0x` sin consumir espacio de pantalla.
+  - El osciloscopio en tiempo real (`#history-canvas`, 15 segundos a 4 Hz con telemetría de CPU, RAM y umbral crítico del 92%) se traslada a la parte superior de la columna derecha, colocándose sobre los multiplicadores compactos.
+- **Rediseño Completo de Puntuación: Motor Anti-AFK y Densidad de Estrés**:
+  - **Erradicación del farmeo pasivo/AFK**: Abrir la aplicación y no tocar nada ahora produce exactamente **0 pts/segundo**.
+  - **Fórmula de Tasa de Flujo por Densidad de Hardware**: Los puntos por segundo ahora se calculan como una función no lineal de la saturación del equipo:
+    $$\text{Tasa (pts/s)} = (\text{Pestañas} \times 22 + \text{MultiplicadoresActivos} \times 42) \times \left(\frac{\text{CPU}\% + \text{RAM}\%}{100}\right)^{1.8} \times \text{MultBase} \times \text{Riesgo} \times \text{Racha} \times \text{Frecuencia}$$
+    Sostener el hardware al 85%+ de carga genera más de 15 veces más puntos por segundo que mantenerlo en reposo.
+  - **Sistema de Racha de Sobrecarga (Overload Streak)**: Mantener el sistema en la zona de peligro (>80% de RAM o CPU) incrementa un temporizador continuo de racha que multiplica exponencialmente el flujo de puntos:
+    - *10s sostenidos*: Multiplicador **x1.5** (`CALIENTE`)
+    - *25s sostenidos*: Multiplicador **x2.5** (`SOBRECARGA`)
+    - *45s sostenidos*: Multiplicador **x4.0** (`CRÍTICO AL BORDE DEL COLAPSO`)
+    - Abrir 25 pestañas con CPU Melter y RAM Eater durante 1 minuto genera decenas de miles de puntos, premiando la habilidad y el riesgo frente a la inactividad.
+  - **Nueva Tarjeta de Telemetría de Flujo**: Ubicada en la columna izquierda, muestra en tiempo real la tasa de flujo (`+XXX pts/s`), el multiplicador de racha y el tiempo continuado bajo estrés extremo.
+- **Rediseño de "Gastar Puntos": Hitos de Sobrecarga Automáticos**:
+  - Se eliminó el gasto de puntuación para no perjudicar el récord del jugador.
+  - Ahora las ventajas se desbloquean de forma automática por maestría y estrés:
+    - *Compresión de RAM (48MB/tab)*: Auto-desbloqueo al alcanzar 12 pestañas vivas simultáneas.
+    - *Inyección de Frecuencia (+50% pts/s)*: Auto-desbloqueo al acumular 15 segundos en alta carga (>75%).
+    - *Disipador Criogénico (+0.5x Mult permanente)*: Auto-desbloqueo al encender 2 o más multiplicadores simultáneos.
+    - Las tarjetas de hitos cambian su estado visual a verde neón (`DESBLOQUEADO / ACTIVO`) con feedback sonoro al alcanzarse.
+- **Evaluación por Intensidad de Estrés en Pantalla de Game Over (BSOD)**:
+  - Los rangos en la pantalla azul (BSOD) se evalúan según la **Tasa Media de Estrés (pts/s)** lograda durante la sesión, las pestañas pico y el tiempo de supervivencia bajo estrés:
+    - **TIER S (DESTRUCTOR DE SILICIO)**: Tasa media >= 600 pts/s o 30+ pestañas bajo estrés crítico prolongado.
+    - **TIER A (OVERCLOCKER MAESTRO)**: Tasa media >= 260 pts/s o 18+ pestañas bajo estrés.
+    - **TIER B (STRESS TESTER)**: Tasa media >= 90 pts/s o 10+ pestañas.
+    - **TIER C (OPERADOR CAUTELOSO)**: Tasa media >= 20 pts/s.
+    - **TIER D (INACTIVO / SIN ESTRÉS)**: Penalización directa a jugadores AFK que no arriesgan hardware.
+  - Nuevo indicador en la BSOD: *Tasa Media Estrés: XXX pts/s*.
+  - Colores distintivos oficiales por Tier en la insignia BSOD.
+- **Sincronización Global de Versión**:
+  - Versión actualizada a `v1.5.0` en `package.json`, `tauri.conf.json`, `Cargo.toml`, `start.bat`, `preload.js`, `main.js`, `index.html`, `tabVisualizer.js` y `app.js`.
+
+---
+
 ## [v1.4.0] - 2026-09-04
 ### Reorganización Espacial del Dashboard, Viewport de Animación del Caos y Multiplicadores Minimalistas
 - **Reubicación del Osciloscopio a la Columna Izquierda**:
