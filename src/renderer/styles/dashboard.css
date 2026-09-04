@@ -316,10 +316,6 @@ main {
   margin-bottom: 10px;
 }
 
-.stats-grid-3 {
-  grid-template-columns: 1.1fr 1.2fr 1fr;
-}
-
 .stat-box {
   background: var(--bg-card-subtle);
   border: 1px solid var(--border-subtle);
@@ -345,97 +341,121 @@ main {
   margin-top: 2px;
 }
 
-/* Botones Principales de Acción y Rejilla de Pestañas (+1 y -1) */
-.tab-actions-split-grid {
+/* Botones Principales de Acción y Rejilla Simétrica 2x2 (+1, -1, +10, -10) */
+.tab-actions-matrix {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 8px;
-  margin-bottom: 8px;
+  margin-bottom: 12px;
 }
 
-.action-btn-huge {
-  padding: 10px 10px;
+.action-btn-matrix {
+  padding: 10px 8px;
   border-radius: var(--radius-md);
   font-family: var(--font-mono);
-  font-size: 0.8rem;
-  font-weight: 800;
-  letter-spacing: 0.8px;
   cursor: pointer;
-  text-transform: uppercase;
-  transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.15s ease;
+  transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.15s ease, border-color 0.15s ease;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 2px;
   text-align: center;
+  border: 1px solid transparent;
+  user-select: none;
 }
 
-.action-btn-add {
-  background: linear-gradient(135deg, #0052cc 0%, #0099ff 100%);
-  border: 1px solid rgba(0, 240, 255, 0.4);
-  color: #ffffff;
-  box-shadow: 0 4px 16px rgba(0, 153, 255, 0.35);
-}
-
-.action-btn-add:hover {
+.action-btn-matrix:hover {
   transform: translateY(-1px);
-  box-shadow: 0 6px 22px rgba(0, 153, 255, 0.55);
 }
 
-.action-btn-add:active {
+.action-btn-matrix:active {
   transform: translateY(1px);
 }
 
-.action-btn-remove {
-  background: linear-gradient(135deg, rgba(255, 85, 0, 0.18) 0%, rgba(255, 0, 68, 0.28) 100%);
-  border: 1px solid rgba(255, 85, 0, 0.5);
-  color: #ffb700;
-  box-shadow: 0 4px 14px rgba(255, 85, 0, 0.2);
+.btn-main-title {
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.6px;
 }
 
-.action-btn-remove:hover {
-  transform: translateY(-1px);
-  background: linear-gradient(135deg, rgba(255, 85, 0, 0.32) 0%, rgba(255, 0, 68, 0.42) 100%);
-  color: #ffffff;
-  border-color: rgba(255, 0, 68, 0.7);
-  box-shadow: 0 6px 20px rgba(255, 85, 0, 0.4);
-}
-
-.action-btn-remove:active {
-  transform: translateY(1px);
+.btn-sub-label {
+  font-size: 0.65rem;
+  opacity: 0.85;
+  font-weight: 600;
 }
 
 .btn-hotkey-hint {
-  font-size: 0.68rem;
+  font-size: 0.65rem;
   opacity: 0.8;
-  font-weight: 600;
-  letter-spacing: 0.5px;
-}
-
-.btn-secondary {
-  background: rgba(0, 240, 255, 0.08);
-  border: 1px solid rgba(0, 240, 255, 0.3);
-  color: var(--neon-cyan);
-  padding: 8px 12px;
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  font-family: var(--font-mono);
-  font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.5px;
-  transition: background 0.15s ease, transform 0.12s ease;
-  margin-bottom: 10px;
-  text-align: center;
 }
 
-.btn-secondary:hover {
-  background: rgba(0, 240, 255, 0.18);
-  transform: translateY(-1px);
+/* +1 Pestaña (Cian de Precisión) */
+.action-btn-add {
+  background: linear-gradient(135deg, #0052cc 0%, #0099ff 100%);
+  border-color: rgba(0, 240, 255, 0.45);
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(0, 153, 255, 0.3);
 }
 
-.btn-secondary:active {
-  transform: translateY(1px);
+.action-btn-add:hover {
+  box-shadow: 0 6px 20px rgba(0, 153, 255, 0.55);
+  border-color: var(--neon-cyan);
+}
+
+/* -1 Pestaña (Ámbar de Alivio Táctico) */
+.action-btn-remove {
+  background: linear-gradient(135deg, rgba(255, 140, 0, 0.16) 0%, rgba(255, 85, 0, 0.28) 100%);
+  border-color: rgba(255, 140, 0, 0.5);
+  color: #ffb700;
+  box-shadow: 0 4px 14px rgba(255, 140, 0, 0.2);
+}
+
+.action-btn-remove:hover {
+  background: linear-gradient(135deg, rgba(255, 140, 0, 0.28) 0%, rgba(255, 85, 0, 0.42) 100%);
+  color: #ffffff;
+  border-color: #ffb700;
+  box-shadow: 0 6px 20px rgba(255, 140, 0, 0.4);
+}
+
+/* +10 Pestañas (Violeta/Púrpura de Ráfaga) */
+.action-btn-burst {
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+  border-color: rgba(168, 85, 247, 0.5);
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(124, 58, 237, 0.3);
+}
+
+.action-btn-burst:hover {
+  box-shadow: 0 6px 20px rgba(124, 58, 237, 0.55);
+  border-color: #c084fc;
+}
+
+/* -10 Pestañas (Carmesí de Purga Masiva) */
+.action-btn-purge {
+  background: linear-gradient(135deg, rgba(220, 38, 38, 0.2) 0%, rgba(255, 0, 68, 0.32) 100%);
+  border-color: rgba(255, 0, 68, 0.55);
+  color: #ff4d6d;
+  box-shadow: 0 4px 14px rgba(255, 0, 68, 0.2);
+}
+
+.action-btn-purge:hover {
+  background: linear-gradient(135deg, rgba(220, 38, 38, 0.35) 0%, rgba(255, 0, 68, 0.5) 100%);
+  color: #ffffff;
+  border-color: #ff0044;
+  box-shadow: 0 6px 20px rgba(255, 0, 68, 0.45);
+}
+
+.mult-hotkey-pill {
+  font-size: 0.65rem;
+  padding: 1px 5px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 3px;
+  color: var(--text-muted);
+  font-weight: 700;
+  margin-left: 4px;
 }
 
 /* Tasa de Flujo de Estrés y Racha en Columna Izquierda */
@@ -1061,6 +1081,53 @@ footer {
   font-weight: 700;
 }
 
+/* Componentes del Dispositivo Detectados en BSOD */
+.bsod-hardware-box {
+  background: rgba(0, 0, 0, 0.22);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  margin-bottom: 18px;
+}
+
+.bsod-hw-title {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  opacity: 0.85;
+  margin-bottom: 6px;
+  font-family: var(--font-mono);
+}
+
+.bsod-hw-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px 16px;
+  font-size: 0.78rem;
+}
+
+.bsod-hw-item {
+  display: flex;
+  gap: 6px;
+  align-items: baseline;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bsod-hw-label {
+  opacity: 0.75;
+  font-size: 0.72rem;
+  flex-shrink: 0;
+}
+
+.bsod-hw-val {
+  font-weight: 600;
+  font-family: var(--font-mono);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 /* Código de Parada Minimalista */
 .bsod-stopcode-line {
   font-size: 0.75rem;
@@ -1121,161 +1188,3 @@ footer {
   opacity: 0.75;
   margin-left: 8px;
 }
-
-/* ==========================================================================
-   PERFIL DE HARDWARE Y COMPONENTES DETECTADOS EN BSOD (v1.7.0)
-   ========================================================================== */
-.bsod-hardware-box {
-  background: rgba(0, 0, 0, 0.25);
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  border-radius: var(--radius-sm);
-  padding: 12px 16px;
-  margin-bottom: 22px;
-}
-
-.bsod-hw-header {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.8px;
-  margin-bottom: 10px;
-  opacity: 0.92;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.14);
-  padding-bottom: 6px;
-}
-
-.bsod-hw-badge {
-  background: rgba(255, 255, 255, 0.2);
-  padding: 2px 7px;
-  border-radius: 2px;
-  font-family: var(--font-mono);
-  font-size: 0.68rem;
-  font-weight: 800;
-  letter-spacing: 0.5px;
-}
-
-.bsod-hw-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px 18px;
-}
-
-.bsod-hw-row {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.bsod-hw-label {
-  font-size: 0.68rem;
-  font-family: var(--font-mono);
-  opacity: 0.75;
-  letter-spacing: 0.5px;
-}
-
-.bsod-hw-value {
-  font-size: 0.82rem;
-  font-family: var(--font-mono);
-  font-weight: 600;
-  line-height: 1.3;
-  word-break: break-word;
-}
-
-/* ==========================================================================
-   BOTÓN DE PULSO Y CLIC INTERACTIVO EN SIMULADOR (v1.7.0)
-   ========================================================================== */
-.chaos-canvas-container {
-  cursor: crosshair;
-}
-
-.chaos-click-hint {
-  font-size: 0.65rem;
-  font-family: var(--font-mono);
-  color: var(--neon-cyan);
-  background: rgba(0, 240, 255, 0.08);
-  border: 1px solid rgba(0, 240, 255, 0.25);
-  padding: 2px 6px;
-  border-radius: 3px;
-  letter-spacing: 0.5px;
-  margin-left: auto;
-  margin-right: 8px;
-  animation: pulseNeonGlow 2.5s infinite ease-in-out;
-}
-
-@keyframes pulseNeonGlow {
-  0%, 100% { border-color: rgba(0, 240, 255, 0.25); opacity: 0.85; }
-  50% { border-color: rgba(0, 240, 255, 0.7); opacity: 1; box-shadow: 0 0 8px rgba(0, 240, 255, 0.3); }
-}
-
-.btn-overclock-pulse {
-  background: linear-gradient(135deg, rgba(0, 240, 255, 0.12) 0%, rgba(0, 255, 136, 0.12) 100%);
-  border: 1px solid rgba(0, 240, 255, 0.4);
-  color: #ffffff;
-  padding: 10px 14px;
-  border-radius: var(--radius-sm);
-  font-family: var(--font-sans);
-  font-size: 0.8rem;
-  font-weight: 800;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  cursor: pointer;
-  transition: all 0.12s ease;
-  margin-top: 6px;
-  width: 100%;
-}
-
-.btn-overclock-pulse:hover {
-  background: linear-gradient(135deg, rgba(0, 240, 255, 0.22) 0%, rgba(0, 255, 136, 0.22) 100%);
-  border-color: var(--neon-cyan);
-  box-shadow: 0 0 14px rgba(0, 240, 255, 0.35);
-  transform: translateY(-1px);
-}
-
-.btn-overclock-pulse:active {
-  transform: translateY(1px);
-}
-
-/* Números flotantes interactivos de clics (+pts) */
-.click-floating-number {
-  position: fixed;
-  pointer-events: none;
-  font-family: var(--font-mono);
-  font-weight: 900;
-  font-size: 0.95rem;
-  color: var(--neon-green);
-  text-shadow: 0 0 8px rgba(0, 255, 136, 0.8);
-  z-index: 9999;
-  user-select: none;
-  animation: floatUpFade 0.65s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
-  transform: translate(-50%, -50%);
-}
-
-.click-floating-number.critical {
-  color: var(--neon-crimson);
-  text-shadow: 0 0 10px rgba(255, 0, 68, 0.9);
-  font-size: 1.15rem;
-}
-
-.click-floating-number.high {
-  color: #ff8800;
-  text-shadow: 0 0 8px rgba(255, 136, 0, 0.8);
-  font-size: 1.05rem;
-}
-
-@keyframes floatUpFade {
-  0% {
-    opacity: 1;
-    transform: translate(-50%, -50%) scale(0.9);
-  }
-  40% {
-    transform: translate(-50%, -100%) scale(1.15);
-  }
-  100% {
-    opacity: 0;
-    transform: translate(-50%, -160%) scale(1);
-  }
-}
-

@@ -58,13 +58,13 @@
         <div class="score-big" id="score-display">0</div>
       </div>
 
-      <!-- Valor por Clic & Racha de Estrés en Tiempo Real -->
+      <!-- Tasa de Flujo de Puntuación & Racha de Estrés en Tiempo Real -->
       <div class="flow-rate-card">
         <div class="flow-rate-col">
-          <span class="flow-label">VALOR POR CLIC</span>
+          <span class="flow-label">TASA DE FLUJO</span>
           <div class="flow-rate-val-group">
-            <span class="flow-val" id="click-value-display">+10</span>
-            <span class="flow-unit">pts/clic</span>
+            <span class="flow-val" id="flow-rate-display">+0</span>
+            <span class="flow-unit">pts/s</span>
           </div>
         </div>
         <div class="flow-rate-col text-right">
@@ -76,17 +76,13 @@
         </div>
       </div>
 
-      <div class="stats-grid stats-grid-3">
+      <div class="stats-grid">
         <div class="stat-box">
-          <div class="stat-label">Pestañas</div>
+          <div class="stat-label">Pestañas Vivas</div>
           <div class="stat-value" id="tabs-count-display">0</div>
         </div>
         <div class="stat-box">
-          <div class="stat-label">Clics (CPS)</div>
-          <div class="stat-value"><span id="total-clicks-display">0</span> <small class="text-dim" id="cps-display">(0.0)</small></div>
-        </div>
-        <div class="stat-box">
-          <div class="stat-label">Tiempo</div>
+          <div class="stat-label">Supervivencia</div>
           <div class="stat-value" id="survival-time">00:00</div>
         </div>
       </div>
@@ -217,61 +213,64 @@
 
       <!-- Viewport de Animación de Ventanas y Caos en Tiempo Real -->
       <div class="card-title section-title-spacing">
-        <span>Simulador &amp; Pulso de Caos</span>
-        <span class="chaos-click-hint">CLIC EN SIMULADOR = +PTS</span>
+        <span>Simulador de Ventanas &amp; Caos</span>
         <span id="chaos-status-text" class="chaos-badge">ESTABLE</span>
       </div>
-      <div class="chaos-canvas-container" id="chaos-canvas-container" title="Haz clic en este canvas para cosechar puntos bajo estrés">
+      <div class="chaos-canvas-container">
         <canvas id="chaos-canvas"></canvas>
       </div>
     </section>
 
-    <!-- Columna Derecha: Todos los Botones Accionables (+1, -1, +10, Pulso, Multiplicadores y Pánico) -->
+    <!-- Columna Derecha: Todos los Botones Accionables (+1, -1, +10, -10, Multiplicadores y Pánico) -->
     <section class="card">
       <div class="card-title">
         <span>Panel de Control &amp; Carga</span>
       </div>
 
-      <!-- Acciones de Pestañas (+1 y -1 en rejilla balanceada) -->
-      <div class="tab-actions-split-grid">
-        <button id="btn-add-tab" class="action-btn-huge action-btn-add">
-          <span>+1 PESTAÑA (<span id="mb-per-tab-text">64</span>MB)</span>
+      <!-- Acciones de Pestañas (Rejilla Simétrica 2x2 para gestión táctica) -->
+      <div class="tab-actions-matrix">
+        <button id="btn-add-tab" class="action-btn-matrix action-btn-add" title="Abrir 1 pestaña de memoria (Atajo: ESPACIO o ENTER)">
+          <span class="btn-main-title">+1 PESTAÑA</span>
+          <span class="btn-sub-label">(<span id="mb-per-tab-text">64</span>MB)</span>
           <span class="btn-hotkey-hint">[ESPACIO]</span>
         </button>
 
-        <button id="btn-remove-tab" class="action-btn-huge action-btn-remove" title="Liberar memoria de emergencia y reducir presión del Watchdog">
-          <span>−1 PESTAÑA (ALIVIO)</span>
+        <button id="btn-remove-tab" class="action-btn-matrix action-btn-remove" title="Liberar 1 pestaña de memoria para esquivar el Watchdog (Atajo: RETROCESO o -)">
+          <span class="btn-main-title">−1 PESTAÑA</span>
+          <span class="btn-sub-label">(ALIVIO)</span>
           <span class="btn-hotkey-hint">[RETROCESO]</span>
         </button>
+
+        <button id="btn-add-10-tabs" class="action-btn-matrix action-btn-burst" title="Ráfaga de 10 pestañas directas al buffer (Atajo: SHIFT + ESPACIO)">
+          <span class="btn-main-title">+10 PESTAÑAS</span>
+          <span class="btn-sub-label">(RÁFAGA)</span>
+          <span class="btn-hotkey-hint">[SHIFT+ESP]</span>
+        </button>
+
+        <button id="btn-remove-10-tabs" class="action-btn-matrix action-btn-purge" title="Purga de emergencia de 10 pestañas (Atajo: SHIFT + RETROCESO)">
+          <span class="btn-main-title">−10 PESTAÑAS</span>
+          <span class="btn-sub-label">(PURGA)</span>
+          <span class="btn-hotkey-hint">[SHIFT+RET]</span>
+        </button>
       </div>
-
-      <button id="btn-add-10-tabs" class="btn-secondary">
-        +10 PESTAÑAS EN RÁFAGA
-      </button>
-
-      <!-- Botón de Pulso de Overclock (Cosecha puntos activos sin alterar memoria) -->
-      <button id="btn-overclock-pulse" class="btn-overclock-pulse" title="Cosechar puntos inmediatos sin consumir memoria adicional (Atajo: Tecla C o Clic en simulador)">
-        <span>⚡ PULSO DE OVERCLOCK (+PTS)</span>
-        <span class="btn-hotkey-hint">[C / CLIC]</span>
-      </button>
 
       <!-- Multiplicadores Pesados Compactos -->
       <div class="card-title section-title-spacing">
         <span>Multiplicadores de Sobrecarga</span>
       </div>
       <div class="multipliers-compact-grid">
-        <button class="multiplier-compact-btn" id="btn-toggle-cpu" title="Atajo: Tecla 1">
-          <span class="mult-name text-cyan">🔥 CPU MELTER</span>
+        <button class="multiplier-compact-btn" id="btn-toggle-cpu" title="Sobrecargar hilos de CPU (Atajo: Tecla 1)">
+          <span class="mult-name text-cyan">🔥 CPU MELTER <span class="mult-hotkey-pill">[1]</span></span>
           <span class="mult-boost">+3.0x</span>
           <span class="mult-tag">INACTIVO</span>
         </button>
-        <button class="multiplier-compact-btn" id="btn-toggle-ram" title="Atajo: Tecla 2">
-          <span class="mult-name text-green">💾 RAM EATER</span>
+        <button class="multiplier-compact-btn" id="btn-toggle-ram" title="Asignar buffers continuos de RAM (Atajo: Tecla 2)">
+          <span class="mult-name text-green">💾 RAM EATER <span class="mult-hotkey-pill">[2]</span></span>
           <span class="mult-boost">+2.5x</span>
           <span class="mult-tag">INACTIVO</span>
         </button>
-        <button class="multiplier-compact-btn" id="btn-toggle-gpu" title="Atajo: Tecla 3">
-          <span class="mult-name text-purple">🌌 GPU BURNER</span>
+        <button class="multiplier-compact-btn" id="btn-toggle-gpu" title="Shader raymarching GPU offscreen (Atajo: Tecla 3)">
+          <span class="mult-name text-purple">🌌 GPU BURNER <span class="mult-hotkey-pill">[3]</span></span>
           <span class="mult-boost">+2.0x</span>
           <span class="mult-tag">INACTIVO</span>
         </button>
@@ -282,7 +281,7 @@
         <div class="card-title section-title-spacing">
           <span>Protocolo de Emergencia</span>
         </div>
-        <button id="btn-panic" class="btn-panic" title="Atajo: Tecla Escape">
+        <button id="btn-panic" class="btn-panic" title="Detonar parada de emergencia (Atajo: ESC)">
           <span>🛑 ABORTO DE EMERGENCIA</span>
           <span class="btn-hotkey-hint">[ESC]</span>
         </button>
@@ -296,9 +295,10 @@
       Windows Crasher Engine • Versión <strong class="text-cyan" id="footer-version-text">v1.7.0</strong>
     </div>
     <div class="footer-shortcuts">
-      <span><span class="shortcut-pill">ESPACIO</span> +1 Pestaña</span>
-      <span><span class="shortcut-pill">BACKSPACE</span> -1 Pestaña</span>
-      <span><span class="shortcut-pill">C / CLIC</span> Pulso Pts</span>
+      <span><span class="shortcut-pill">ESPACIO</span> +1</span>
+      <span><span class="shortcut-pill">BACKSPACE</span> -1</span>
+      <span><span class="shortcut-pill">SHIFT+ESP</span> +10</span>
+      <span><span class="shortcut-pill">SHIFT+BACK</span> -10</span>
       <span><span class="shortcut-pill">1-3</span> Cargas</span>
       <span><span class="shortcut-pill">M</span> Audio</span>
       <span><span class="shortcut-pill">ESC</span> Pánico</span>
@@ -323,7 +323,7 @@
       <!-- Puntuación Heroica y Tier -->
       <div class="bsod-score-tier-row">
         <div class="bsod-score-display">
-          <span class="bsod-score-label">PUNTUACIÓN POR CLICS</span>
+          <span class="bsod-score-label">PUNTUACIÓN</span>
           <span class="bsod-score-num" id="modal-score">0</span>
           <span class="bsod-score-pts">PTS</span>
         </div>
@@ -334,39 +334,35 @@
         </div>
       </div>
 
-      <!-- Estadísticas de Clics, Rendimiento y Estrés -->
+      <!-- Estadísticas rápidas compactas con Tasa Media de Estrés -->
       <div class="bsod-quick-stats">
-        <span class="bsod-stat-item">Clics Totales: <strong id="modal-clicks">0</strong></span>
-        <span class="bsod-stat-item">Cadencia Máx: <strong id="modal-peak-cps">0.0 CPS</strong></span>
-        <span class="bsod-stat-item">Valor Clic Promedio: <strong id="modal-stress-rate">0 pts/clic</strong></span>
+        <span class="bsod-stat-item">Tasa Media Estrés: <strong id="modal-stress-rate">0 pts/s</strong></span>
         <span class="bsod-stat-item">Pestañas: <strong id="modal-tabs">0</strong></span>
         <span class="bsod-stat-item">Supervivencia: <strong id="modal-survival-time">00:00</strong></span>
         <span class="bsod-stat-item">Pico RAM: <strong id="modal-peak-ram">0%</strong></span>
         <span class="bsod-stat-item">Pico CPU: <strong id="modal-peak-cpu">0%</strong></span>
+        <span class="bsod-stat-item">RAM Liberada: <strong id="modal-freed-ram">0 MB</strong></span>
       </div>
 
-      <!-- COMPONENTES DEL DISPOSITIVO DETECTADOS -->
+      <!-- Componentes del Dispositivo Detectados -->
       <div class="bsod-hardware-box">
-        <div class="bsod-hw-header">
-          <span class="bsod-hw-badge">PERFIL DE HARDWARE</span>
-          <span>COMPONENTES DETECTADOS EN ESTE DISPOSITIVO</span>
-        </div>
+        <div class="bsod-hw-title">ESPECIFICACIONES DEL DISPOSITIVO / PERFIL DE HARDWARE:</div>
         <div class="bsod-hw-grid">
-          <div class="bsod-hw-row">
-            <span class="bsod-hw-label">PROCESADOR (CPU):</span>
-            <span class="bsod-hw-value text-cyan" id="bsod-hw-cpu">Detectando procesador...</span>
+          <div class="bsod-hw-item">
+            <span class="bsod-hw-label">Procesador (CPU):</span>
+            <span class="bsod-hw-val" id="bsod-hw-cpu">Detectando procesador...</span>
           </div>
-          <div class="bsod-hw-row">
-            <span class="bsod-hw-label">MEMORIA RAM TOTAL:</span>
-            <span class="bsod-hw-value text-green" id="bsod-hw-ram">Detectando memoria...</span>
+          <div class="bsod-hw-item">
+            <span class="bsod-hw-label">Memoria RAM:</span>
+            <span class="bsod-hw-val" id="bsod-hw-ram">Detectando memoria...</span>
           </div>
-          <div class="bsod-hw-row">
-            <span class="bsod-hw-label">TARJETA GRÁFICA (GPU):</span>
-            <span class="bsod-hw-value text-purple" id="bsod-hw-gpu">Detectando acelerador...</span>
+          <div class="bsod-hw-item">
+            <span class="bsod-hw-label">Acelerador Gráfico:</span>
+            <span class="bsod-hw-val" id="bsod-hw-gpu">Detectando GPU...</span>
           </div>
-          <div class="bsod-hw-row">
-            <span class="bsod-hw-label">SISTEMA OPERATIVO:</span>
-            <span class="bsod-hw-value text-yellow" id="bsod-hw-os">Detectando plataforma...</span>
+          <div class="bsod-hw-item">
+            <span class="bsod-hw-label">Sistema Operativo:</span>
+            <span class="bsod-hw-val" id="bsod-hw-os">Windows NT x64</span>
           </div>
         </div>
       </div>
@@ -382,7 +378,7 @@
           Reiniciar Equipo <span class="bsod-shortcut-hint">[R]</span>
         </button>
         <button id="btn-copy-report" class="btn-bsod-secondary">
-          Copiar Informe y Specs
+          Copiar Resumen <span class="bsod-shortcut-hint">[C]</span>
         </button>
       </div>
     </div>

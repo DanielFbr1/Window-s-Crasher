@@ -1,5 +1,6 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
+const os = require('os');
 const HardwareMonitor = require('./monitor');
 
 let mainWindow = null;
@@ -84,6 +85,28 @@ app.whenReady().then(() => {
           }
         });
       }
+    }
+  });
+
+  // Handler para obtener especificaciones reales del hardware
+  ipcMain.handle('get-system-specs', () => {
+    try {
+      const cpus = os.cpus() || [];
+      const model = cpus.length > 0 ? cpus[0].model.trim() : 'Procesador Compatible';
+      const speed = cpus.length > 0 ? cpus[0].speed : 0;
+      const totalRamGB = (os.totalmem() / (1024 * 1024 * 1024)).toFixed(1);
+      return {
+        cpuModel: model,
+        cpuCores: cpus.length,
+        cpuSpeedMHz: speed,
+        totalRamGB: totalRamGB,
+        platform: os.platform() === 'win32' ? 'Windows' : os.platform(),
+        release: os.release(),
+        arch: os.arch()
+      };
+    } catch (err) {
+      console.warn('[Main] Error obteniendo especificaciones:', err);
+      return null;
     }
   });
 

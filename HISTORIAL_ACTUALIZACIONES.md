@@ -3,39 +3,44 @@
 Este documento mantiene un registro cronológico de todas las versiones, modificaciones y mejoras implementadas en el proyecto para facilitar el contexto y seguimiento a usuarios y agentes.
 
 ## [v1.7.0] - 2026-09-04
-### Puntuación Exclusiva por Clics (Anti-Passivo), Componentes del Dispositivo en BSOD y Pulso de Overclock
-- **Puntuación Exclusiva por Clics (Erradicación del Farmeo Pasivo)**:
-  - **Problema solucionado**: En versiones previas, una vez activados los multiplicadores y pestañas, los puntos subían solos por segundo sin que el jugador necesitara interactuar, haciendo el juego trivial.
-  - **Mecánica de Acción Activa**: Los puntos ya **NUNCA suben automáticamente con el tiempo**. Para generar puntos, el jugador debe hacer clics activamente.
-  - **Cálculo Dinámico de "Valor por Clic"**: Cada clic cosecha una cantidad de puntos calculada en tiempo real según el estrés del sistema:
-    $$\text{ValorPorClic} = (\text{Base} + \text{Tabs} \times 6 + \text{Mults} \times 22) \times \left(\frac{\text{CPU}\% + \text{RAM}\%}{100}\right)^{1.85} \times \text{BaseMult} \times \text{Riesgo} \times \text{Racha} \times \text{RazorEdge} \times \text{Frecuencia}$$
-    - Un clic con el PC en reposo genera apenas 1 o 2 puntos.
-    - Un clic con el PC al 91% de RAM y multiplicadores activos genera entre 400 y 3,000 puntos por clic.
-  - **Fuentes de Clics**:
-    - `+1 Pestaña` (o tecla `Espacio`): Otorga el valor por clic con un multiplicador de riesgo de $1.25\times$.
-    - `−1 Pestaña` (o tecla `Backspace`): Otorga el valor por clic ($1.0\times$) mientras alivia la memoria para no chocar con el 92%.
-    - `+10 Pestañas`: Otorga $10\times$ el valor por clic.
-    - Activación de multiplicadores (`CPU Melter`, `RAM Eater`, `GPU Burner`): Otorga un bono de $2.0\times$ por activación.
-    - Nuevo botón `⚡ PULSO DE OVERCLOCK` (tecla `C` o **haciendo clic directamente en el simulador de caos central** `#chaos-canvas`): Permite hacer clics repetidos y cosechar puntos a toda velocidad sin alterar la memoria asignada, ideal para surfear al 91.5% de RAM.
-  - **Feedback Visual y Métricas de Clics**:
-    - Efecto de números flotantes estilo clicker neón (`+XXX pts`) que brotan en las coordenadas del cursor.
-    - Tarjeta izquierda actualizada a **VALOR POR CLIC** (`+XXX pts/clic`).
-    - Nuevos contadores en tiempo real: **Clics Totales** y **Cadencia (CPS - Clics por Segundo)**.
-- **Componentes del Dispositivo Detectados en la Pantalla de Game Over (BSOD)**:
-  - La pantalla azul de la muerte ahora cuenta con un bloque oficial de diagnóstico forense:
-    - **Procesador (CPU)**: Nombre exacto del microprocesador (ej. *11th Gen Intel(R) Core(TM) i7-1165G7 @ 2.80GHz*), núcleos lógicos y frecuencia.
-    - **Memoria RAM Total**: Capacidad total del equipo en GB y porcentaje de pico alcanzado antes de la intervención del Watchdog.
-    - **Tarjeta Gráfica (GPU)**: Acelerador y renderizador detectado vía WebGL unmasked debug info (Direct3D11/Vulkan/OpenGL).
-    - **Sistema Operativo & Plataforma**: Plataforma, arquitectura (x64) y versión de kernel de Windows.
-  - Todos los datos de hardware se incluyen automáticamente al presionar el botón "Copiar Informe y Specs".
-- **Recalibración de Tiers en Game Over por Habilidad de Clics (APM)**:
-  - **TIER S (DESTRUCTOR DE SILICIO)**: Requiere $\ge 40,000$ pts obtenidos por clics, $\ge 50$ clics activos y $\ge 18$ segundos en zona crítica (o $\ge 75,000$ pts con $\ge 70$ clics).
-  - **TIER A (OVERCLOCKER MAESTRO)**: Requiere $\ge 18,000$ pts, $\ge 25$ clics y $\ge 8$ segundos en peligro.
-  - **TIER B (STRESS TESTER)**: Requiere $\ge 6,000$ pts y $\ge 15$ clics.
-  - **TIER C (OPERADOR CAUTELOSO)**: Requiere $\ge 1,200$ pts y $\ge 6$ clics.
-  - **TIER D (INACTIVO / SIN CLICS)**: Menos de 5 clics o menos de 300 pts.
-- **Actualización de Versión**:
-  - Actualizado a `v1.7.0` en `package.json`, `tauri.conf.json`, `Cargo.toml`, `start.bat`, `preload.js`, `main.js`, `index.html`, `tabVisualizer.js` y `app.js`.
+### Animaciones de Alta Fidelidad (RAM & GPU Melter), Matriz 2x2 con Botón -10 Pestañas, Especificaciones Forenses en BSOD y Atajos Completos
+- **Animaciones Avanzadas de RAM y GPU Melter en el Simulador de Caos (`tabVisualizer.js`)**:
+  - **RAM Eater / Sobrecarga de Memoria**:
+    - Cascada cibernética continua de volcados hexadecimales (`0xDEAD`, `0xBEEF`, `0x80F4`, `0x7FFF`, `PAGE_FLT`, `STACK_OVR`...) cayendo con glow verde neón y cian.
+    - Líneas horizontales de bus de datos (*Memory Bus Transfer*) que cruzan el fondo con pulsos eléctricos.
+    - Visualizador físico de bloques de memoria DIMM en la base del canvas (28 celdas de hardware): las celdas se llenan en tiempo real, virando de verde neón a ámbar (>75%) y a rojo carmesí parpadeante (>88%) con efecto de memoria corrupta y temblor.
+  - **GPU Melter / Burner (Vórtice de Plasma y Rayos Eléctricos)**:
+    - Vórtice central con 3 anillos elípticos de plasma girando en contrarrotación continua (`Date.now() * 0.0025`) en tonos púrpura, magenta y cian (`#c084fc`, `#d946ef`, `#38bdf8`).
+    - Rayos y arcos eléctricos aleatorios (*electric arcs*) atravesando la pantalla simulando sobretensión extrema en las unidades de cómputo.
+    - Malla de perspectiva 3D alámbrica en la base que se deforma y vibra con calor según la carga de la GPU.
+    - Emisión constante de chispas cuánticas de alta energía violeta.
+  - **Efecto de Desintegración Explosiva**: Al eliminar pestañas, se produce una dispersión radial de partículas anaranjadas y rojas (hasta 10 ventanas en simultáneo al purgar).
+- **Nueva Matriz Ergonómica 2x2 para el Control de Pestañas a la Derecha**:
+  - Se reorganizan los controles interactivos en una cuadrícula simétrica de 4 pulsadores con badges visuales de teclas de acceso rápido:
+    - **`+1 PESTAÑA` (64MB) [ESPACIO / ENTER]**: Inyección de precisión milimétrica (Azul/Cian).
+    - **`−1 PESTAÑA` (ALIVIO) [RETROCESO / -]**: Micro-alivio táctico contra el Watchdog (Ámbar).
+    - **`+10 PESTAÑAS` (RÁFAGA) [SHIFT + ESPACIO]**: Sobrecarga masiva en ráfaga (Violeta/Púrpura).
+    - **`−10 PESTAÑAS` (PURGA) [SHIFT + RETROCESO]** (¡NUEVO!): Botón carmesí de despresurización de emergencia para salvar el sistema al rozar el 91.9% de RAM.
+  - Mejoras de diseño con estados hover/active elásticos, sombras de neón acordes al nivel de riesgo y prevención de selección accidental de texto.
+- **Especificaciones Forenses del Dispositivo en la Pantalla de Game Over (BSOD)**:
+  - Detección automática en el arranque mediante el proceso principal de Electron (`os.cpus()`, `os.totalmem()`, `os.platform()`, `os.release()`) y WebGL (`WEBGL_debug_renderer_info`):
+    - **Procesador (CPU)**: Modelo real (Intel / AMD), núcleos lógicos y frecuencia.
+    - **Memoria RAM Total**: Capacidad física instalada (GB) y pico porcentual de la sesión.
+    - **Acelerador Gráfico**: Nombre exacto del renderer GPU detectado (NVIDIA, AMD Radeon, Intel Iris/UHD, etc.).
+    - **Sistema Operativo**: Plataforma y release (Windows NT x64).
+  - Integrado de forma sobria y elegante en la pantalla azul (BSOD) y adjuntado automáticamente al portapapeles mediante el botón "Copiar Resumen".
+- **Atajos de Teclado Interactivos Globales**:
+  - `Espacio`, `Enter`, `+`: Abrir 1 pestaña (+1).
+  - `Shift + Espacio`, `Shift + Enter`, `Shift + +`: Ráfaga de 10 pestañas (+10).
+  - `Backspace`, `-`: Restar 1 pestaña (−1).
+  - `Shift + Backspace`, `Shift + -`: Purga rápida de 10 pestañas (−10).
+  - `1`, `2`, `3`: Alternar multiplicadores (`CPU Melter`, `RAM Eater`, `GPU Burner`).
+  - `Escape` o `P`: Detonar parada de emergencia de pánico.
+  - `M`: Silenciar o activar efectos de audio.
+  - `R`: Reiniciar equipo desde la pantalla de Game Over.
+  - `C`: Copiar reporte forense desde la pantalla de Game Over.
+- **Actualización y Sincronización Global**:
+  - Versión elevada a **`v1.7.0`** en todos los manifiestos, cabeceras, títulos y pie de página.
 
 ---
 
