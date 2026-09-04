@@ -1,7 +1,7 @@
-// Controlador principal del juego y lógica de benchmarking - Windows Crasher v2.3.0
+// Controlador principal del juego y lógica de benchmarking - Windows Crasher v2.4.0
 class WindowsCrasherApp {
   constructor() {
-    this.appVersion = 'v2.3.0';
+    this.appVersion = 'v2.4.0';
     this.score = 0;
     this.tabsCount = 0;
     this.peakTabs = 0;

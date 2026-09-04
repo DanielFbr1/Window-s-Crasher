@@ -1,10 +1,14 @@
 {
   "name": "windows-crasher",
-  "version": "2.3.0",
+  "version": "2.4.0",
   "description": "Videojuego incremental y de benchmarking de hardware con Watchdog de seguridad",
   "main": "src/main/main.js",
   "scripts": {
-    "start": "electron ."
+    "start": "electron .",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder",
+    "dist:win": "electron-builder --win",
+    "dist:portable": "electron-builder --win portable"
   },
   "keywords": [
     "benchmark",
@@ -13,9 +17,50 @@
     "electron",
     "hardware-monitor"
   ],
-  "author": "Antigravity Senior Developer",
+  "author": "DanielFbr1",
   "license": "MIT",
   "devDependencies": {
-    "electron": "^34.2.0"
+    "electron": "^34.2.0",
+    "electron-builder": "^26.15.3"
+  },
+  "build": {
+    "appId": "com.danielfbr.windowscrasher",
+    "productName": "Windows Crasher",
+    "copyright": "Copyright © 2026 DanielFbr1",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "src/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "deleteAppDataOnUninstall": false,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Windows Crasher"
+    },
+    "portable": {
+      "artifactName": "${productName}-v${version}-Portable.exe"
+    }
   }
 }

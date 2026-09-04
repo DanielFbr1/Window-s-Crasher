@@ -2,6 +2,22 @@
 
 Este documento mantiene un registro cronológico de todas las versiones, modificaciones y mejoras implementadas en el proyecto para facilitar el contexto y seguimiento a usuarios y agentes.
 
+## [v2.4.0] - 2026-09-04
+### Configuración de Compilación y Distribución de Ejecutables con Electron-Builder
+- **Soporte Completo de Empaquetado en [package.json](file:///c:/Users/VALIMANA/Desktop/Proyectos/Window's%20Crasher/package.json)**:
+  - Se configuró el bloque de empaquetado nativo con `electron-builder` (`appId: com.danielfbr.windowscrasher`).
+  - **Generación Dual de Salidas Windows en `dist/`**:
+    - **Instalador NSIS**: `Windows Crasher Setup.exe` con asistente de instalación guiado, accesos directos personalizables en Escritorio y Menú Inicio.
+    - **Ejecutable Portable**: `Windows Crasher-v2.4.0-Portable.exe`, ejecutable autocontenido listo para jugar sin instalación ni permisos de administrador.
+  - **Nuevos Scripts npm de Compilación**:
+    - `npm run pack`: Empaquetado rápido sin comprimir instalador (modo directorio para pruebas).
+    - `npm run dist`: Compila el instalador y la versión portable para Windows en `dist/`.
+    - `npm run dist:portable`: Genera exclusivamente el ejecutable portable.
+- **Sincronización Global de Versión v2.4.0**:
+  - Versión elevada a **`v2.4.0`** en `package.json`, `index.html`, `app.js`, `gpuBurner.js`, `gauges.js`, `main.js`, `tauri.conf.json`, `src-tauri/Cargo.toml` y `start.bat`.
+
+---
+
 ## [v2.3.0] - 2026-09-04
 ### Corrección del Exploit de GPU Burner en Vacío (Bloqueo de Puntos sin Pestañas y Calibración de Carga) y Limpieza de Atajos en Botones
 - **Eliminación del Exploit de GPU Burner con 0 Pestañas**:
