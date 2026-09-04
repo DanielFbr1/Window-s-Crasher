@@ -23,10 +23,11 @@ class HardwareVisualizer {
   resizeCanvas() {
     if (!this.chartCanvas) return;
     const rect = this.chartCanvas.getBoundingClientRect();
-    this.chartCanvas.width = rect.width * window.devicePixelRatio;
-    this.chartCanvas.height = rect.height * window.devicePixelRatio;
+    if (rect.width === 0 || rect.height === 0) return;
+    this.chartCanvas.width = rect.width * (window.devicePixelRatio || 1);
+    this.chartCanvas.height = rect.height * (window.devicePixelRatio || 1);
     if (this.chartCtx) {
-      this.chartCtx.scale(window.devicePixelRatio, window.devicePixelRatio);
+      this.chartCtx.scale(window.devicePixelRatio || 1, window.devicePixelRatio || 1);
     }
   }
 

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Windows Crasher - v1.3.0</title>
+  <title>Windows Crasher - v1.4.0</title>
   <link rel="stylesheet" href="styles/dashboard.css" />
 </head>
 <body>
@@ -13,7 +13,7 @@
     <div class="logo-container">
       <span class="logo-icon">⚡</span>
       <h1>WINDOWS CRASHER</h1>
-      <span class="version-badge" id="app-version-badge">v1.3.0</span>
+      <span class="version-badge" id="app-version-badge">v1.4.0</span>
     </div>
 
     <div class="header-status">
@@ -46,15 +46,15 @@
 
   <!-- Panel Principal de 3 Columnas -->
   <main>
-    <!-- Columna Izquierda: Acciones, Pestañas, Multiplicadores y Taller -->
+    <!-- Columna Izquierda: Acciones, Puntuación, Osciloscopio y Taller -->
     <section class="card">
       <div class="card-title">
-        <span>Sesión &amp; Carga de Estrés</span>
+        <span>Sesión &amp; Benchmark</span>
         <span id="multiplier-display" class="multiplier-tag-header">x1.0</span>
       </div>
 
       <div class="score-container">
-        <div class="stat-label">Puntuación de Benchmark</div>
+        <div class="stat-label">Puntuación Total</div>
         <div class="score-big" id="score-display">0</div>
       </div>
 
@@ -69,63 +69,27 @@
         </div>
       </div>
 
-      <!-- Botón Primario +1 Pestaña -->
+      <!-- Botones de Clic de Pestañas -->
       <button id="btn-add-tab" class="action-btn-huge">
         <span>+1 PESTAÑA (<span id="mb-per-tab-text">64</span>MB)</span>
         <span class="btn-hotkey-hint">[ESPACIO]</span>
       </button>
 
-      <!-- Botón Secundario +10 Pestañas -->
       <button id="btn-add-10-tabs" class="btn-secondary">
         +10 PESTAÑAS EN RÁFAGA
       </button>
 
-      <!-- Matriz Visual de Pestañas / Procesos -->
-      <div class="process-matrix-section">
-        <div class="process-matrix-header">
-          <span>Matriz de Procesos en RAM</span>
-          <span id="process-matrix-counter" class="matrix-counter">0 / 120</span>
-        </div>
-        <div class="process-matrix-grid" id="process-matrix-grid">
-          <!-- Mini-bloques de procesos inyectados dinámicamente -->
+      <!-- Osciloscopio de Telemetría (Reubicado en Columna Izquierda) -->
+      <div class="card-title chart-header-spacing">
+        <span>Osciloscopio (15s)</span>
+        <div class="chart-legend-group">
+          <span class="legend-cpu">■ CPU</span>
+          <span class="legend-ram">■ RAM</span>
+          <span class="legend-limit">-- 92%</span>
         </div>
       </div>
-
-      <div class="card-title section-title-spacing">
-        <span>Multiplicadores Pesados</span>
-      </div>
-
-      <!-- CPU Melter -->
-      <div class="multiplier-card" id="btn-toggle-cpu" title="Atajo: Tecla 1">
-        <div class="multiplier-header">
-          <span class="multiplier-name text-cyan">
-            🔥 CPU MELTER <span class="hotkey-pill">[1]</span>
-          </span>
-          <span class="status-tag">INACTIVO</span>
-        </div>
-        <div class="multiplier-desc">Hilos criptográficos intensivos en paralelo en todos los núcleos (+3.0x).</div>
-      </div>
-
-      <!-- RAM Eater -->
-      <div class="multiplier-card" id="btn-toggle-ram" title="Atajo: Tecla 2">
-        <div class="multiplier-header">
-          <span class="multiplier-name text-green">
-            💾 RAM EATER <span class="hotkey-pill">[2]</span>
-          </span>
-          <span class="status-tag">INACTIVO</span>
-        </div>
-        <div class="multiplier-desc">Mapeo continuo de ArrayBuffers paginados físicamente (+256MB/s) (+2.5x).</div>
-      </div>
-
-      <!-- GPU Burner -->
-      <div class="multiplier-card" id="btn-toggle-gpu" title="Atajo: Tecla 3">
-        <div class="multiplier-header">
-          <span class="multiplier-name text-purple">
-            🌌 GPU BURNER <span class="hotkey-pill">[3]</span>
-          </span>
-          <span class="status-tag">INACTIVO</span>
-        </div>
-        <div class="multiplier-desc">Shader WebGL raymarching fractal de alta iteración matemática (+2.0x).</div>
+      <div class="chart-container-left">
+        <canvas id="history-canvas"></canvas>
       </div>
 
       <!-- Taller de Overclock (Upgrades) -->
@@ -135,33 +99,30 @@
           <span class="overclock-subtext">Gasta Puntuación</span>
         </div>
 
-        <!-- Upgrade 1: Compresión de Memoria -->
         <div class="upgrade-item">
           <div class="upgrade-info">
-            <span class="upgrade-title">Compresión de RAM</span>
-            <span class="upgrade-effect">Pestañas ocupan 48MB en vez de 64MB</span>
+            <span class="upgrade-title">Compresión RAM</span>
+            <span class="upgrade-effect">Pestañas a 48MB</span>
           </div>
           <button id="btn-upgrade-ram-opt" class="btn-buy-upgrade" data-cost="500">
             500 pts
           </button>
         </div>
 
-        <!-- Upgrade 2: Multiplicador de Frecuencia -->
         <div class="upgrade-item">
           <div class="upgrade-info">
             <span class="upgrade-title">Overclock Frecuencia</span>
-            <span class="upgrade-effect">+50% Puntuación generada por tick</span>
+            <span class="upgrade-effect">+50% Puntos/tick</span>
           </div>
           <button id="btn-upgrade-freq" class="btn-buy-upgrade" data-cost="1500">
             1.5k pts
           </button>
         </div>
 
-        <!-- Upgrade 3: Refrigeración Criogénica -->
         <div class="upgrade-item">
           <div class="upgrade-info">
             <span class="upgrade-title">Disipador Criogénico</span>
-            <span class="upgrade-effect">+0.5x Multiplicador Base permanente</span>
+            <span class="upgrade-effect">+0.5x Multiplicador</span>
           </div>
           <button id="btn-upgrade-cooling" class="btn-buy-upgrade" data-cost="4000">
             4.0k pts
@@ -170,7 +131,7 @@
       </div>
     </section>
 
-    <!-- Columna Central: Agujas Analógicas, Barras de Hardware y Osciloscopio -->
+    <!-- Columna Central: Agujas Analógicas y Viewport de Animaciones -->
     <section class="card">
       <div class="card-title">
         <span>Telemetría de Recursos en Tiempo Real</span>
@@ -222,21 +183,17 @@
         ¡ALERTA! CPU SOSTENIDA AL 98%+
       </div>
 
-      <!-- Gráfico Osciloscopio de Historial -->
-      <div class="card-title chart-header-spacing">
-        <span>Osciloscopio de Telemetría (15s)</span>
-        <div class="chart-legend-group">
-          <span class="legend-cpu">■ CPU</span>
-          <span class="legend-ram">■ RAM</span>
-          <span class="legend-limit">-- Límite 92%</span>
-        </div>
+      <!-- NUEVO: Viewport de Animación de Ventanas y Caos en Tiempo Real -->
+      <div class="card-title section-title-spacing">
+        <span>Simulador de Ventanas &amp; Caos</span>
+        <span id="chaos-status-text" class="chaos-badge">ESTABLE</span>
       </div>
-      <div class="chart-container">
-        <canvas id="history-canvas"></canvas>
+      <div class="chaos-canvas-container">
+        <canvas id="chaos-canvas"></canvas>
       </div>
     </section>
 
-    <!-- Columna Derecha: GPU Viewport, Parámetros y Pánico -->
+    <!-- Columna Derecha: GPU Viewport, Multiplicadores Compactos, Diagnóstico y Pánico -->
     <section class="card">
       <div class="card-title">
         <span>Viewport GPU WebGL 2.0</span>
@@ -244,7 +201,29 @@
 
       <!-- Canvas de Shader GPU -->
       <div class="gpu-canvas-container">
-        <canvas id="gpu-canvas" width="300" height="155"></canvas>
+        <canvas id="gpu-canvas" width="300" height="140"></canvas>
+      </div>
+
+      <!-- Multiplicadores Pesados Compactos (Minimalistas: solo nombre y x) -->
+      <div class="card-title section-title-spacing">
+        <span>Multiplicadores</span>
+      </div>
+      <div class="multipliers-compact-grid">
+        <button class="multiplier-compact-btn" id="btn-toggle-cpu" title="Atajo: Tecla 1">
+          <span class="mult-name text-cyan">🔥 CPU MELTER</span>
+          <span class="mult-boost">+3.0x</span>
+          <span class="mult-tag">INACTIVO</span>
+        </button>
+        <button class="multiplier-compact-btn" id="btn-toggle-ram" title="Atajo: Tecla 2">
+          <span class="mult-name text-green">💾 RAM EATER</span>
+          <span class="mult-boost">+2.5x</span>
+          <span class="mult-tag">INACTIVO</span>
+        </button>
+        <button class="multiplier-compact-btn" id="btn-toggle-gpu" title="Atajo: Tecla 3">
+          <span class="mult-name text-purple">🌌 GPU BURNER</span>
+          <span class="mult-boost">+2.0x</span>
+          <span class="mult-tag">INACTIVO</span>
+        </button>
       </div>
 
       <div class="card-title section-title-spacing">
@@ -283,7 +262,7 @@
   <!-- Pie de página con versión explícita y atajos -->
   <footer>
     <div>
-      Windows Crasher Engine • Versión <strong class="text-cyan" id="footer-version-text">v1.3.0</strong>
+      Windows Crasher Engine • Versión <strong class="text-cyan" id="footer-version-text">v1.4.0</strong>
     </div>
     <div class="footer-shortcuts">
       <span><span class="shortcut-pill">ESPACIO</span> +1 Pestaña</span>
@@ -295,7 +274,7 @@
   </footer>
 
   <!-- =====================================================================
-       PANTALLA DE GAME OVER: AUTÉNTICA BSOD MINIMALISTA DE WINDOWS (v1.3.0)
+       PANTALLA DE GAME OVER: AUTÉNTICA BSOD MINIMALISTA DE WINDOWS (v1.4.0)
        ===================================================================== -->
   <div id="game-over-modal" class="modal-overlay">
     <div class="bsod-minimal">
@@ -352,6 +331,7 @@
   <script src="js/soundFx.js"></script>
   <script src="js/ramEater.js"></script>
   <script src="js/gpuBurner.js"></script>
+  <script src="js/tabVisualizer.js"></script>
   <script src="js/gauges.js"></script>
   <script src="js/app.js"></script>
 </body>

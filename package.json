@@ -1,6 +1,6 @@
 {
   "name": "windows-crasher",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "description": "Videojuego incremental y de benchmarking de hardware con Watchdog de seguridad",
   "main": "src/main/main.js",
   "scripts": {

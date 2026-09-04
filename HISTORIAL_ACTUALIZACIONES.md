@@ -4,6 +4,31 @@ Este documento mantiene un registro cronológico de todas las versiones, modific
 
 ---
 
+## [v1.4.0] - 2026-09-04
+### Reorganización Espacial del Dashboard, Viewport de Animación del Caos y Multiplicadores Minimalistas
+- **Reubicación del Osciloscopio a la Columna Izquierda**:
+  - El gráfico en tiempo real de carga de CPU, RAM y umbral del 92% (4 Hz / 15 segundos) se traslada a la columna izquierda, ubicándose de forma ergonómica justo debajo de los botones de pestañas y sobre el taller de overclock.
+- **Nuevo Viewport Central de Animaciones (`src/renderer/js/tabVisualizer.js`)**:
+  - Escenario gráfico interactivo en Canvas 2D a 60fps situado en la columna central, directamente bajo las agujas analógicas:
+    - **Cascada de Ventanas Virtuales**: Cada vez que el jugador pulsa `+1` o `+10` pestañas, se generan ventanas interactivas con barra de título, controles de ventana y datos simulados que caen, se apilan y vibran según el uso del hardware.
+    - **Efectos Dinámicos de Multiplicadores**:
+      - *CPU Melter*: Emisión de chispas y ondas térmicas ascendentes.
+      - *RAM Eater*: Cascada continua de bloques de memoria hexadecimal y flujos de datos binarios cayendo al buffer.
+      - *GPU Burner*: Vórtice y gradiente de luz púrpura con distorsión cibernética.
+    - **Efectos de Tensión Crítica**: Cuando la RAM supera el 88% o la CPU el 95%, el viewport activa sacudida de pantalla (*screen shake*) y barrido láser de advertencia.
+- **Multiplicadores Compactos y Minimalistas**:
+  - Reubicados en la columna derecha en un formato limpio y elegante sin bloques de texto explicativos:
+    - `🔥 CPU MELTER (+3.0x) [1]`
+    - `💾 RAM EATER (+2.5x) [2]`
+    - `🌌 GPU BURNER (+2.0x) [3]`
+  - Diseño táctil compacto con indicadores de estado luminoso (`INACTIVO` / `ACTIVO`) y atajos de teclado.
+- **Sincronización Global de Versión**:
+  - Actualización a `v1.4.0` en `package.json`, `tauri.conf.json`, `Cargo.toml`, `start.bat`, `preload.js`, `main.js`, `index.html` y `app.js`.
+  - Verificación con detector Impeccable: **0 anti-patrones detectados**.
+  - Repositorio Git local actualizado y sincronizado con GitHub.
+
+---
+
 ## [v1.3.0] - 2026-09-04
 ### Sistema de Puntuación por Dificultad Dinámica, BSOD Minimalista de Windows y GitHub
 - **Sistema de Puntuación Exponencial y Basado en Riesgo de Hardware**:

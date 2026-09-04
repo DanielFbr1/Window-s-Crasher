@@ -240,7 +240,7 @@ main {
   letter-spacing: 1.2px;
   color: var(--neon-cyan);
   text-transform: uppercase;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
   border-bottom: 1px solid rgba(0, 240, 255, 0.12);
   padding-bottom: 6px;
   display: flex;
@@ -254,12 +254,12 @@ main {
 
 .chart-header-spacing {
   margin-top: 10px;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 .chart-legend-group {
   display: flex;
-  gap: 12px;
+  gap: 10px;
   font-size: 0.75rem;
 }
 
@@ -295,12 +295,12 @@ main {
   background: var(--bg-card-subtle);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-sm);
-  padding: 10px 14px;
-  margin-bottom: 12px;
+  padding: 8px 12px;
+  margin-bottom: 10px;
 }
 
 .score-big {
-  font-size: 2rem;
+  font-size: 1.85rem;
   font-weight: 900;
   color: var(--text-bright);
   letter-spacing: -0.5px;
@@ -313,13 +313,13 @@ main {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 8px;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
 
 .stat-box {
   background: var(--bg-card-subtle);
   border: 1px solid var(--border-subtle);
-  padding: 8px 10px;
+  padding: 6px 10px;
   border-radius: var(--radius-sm);
   display: flex;
   flex-direction: column;
@@ -346,7 +346,7 @@ main {
   background: linear-gradient(135deg, #0052cc 0%, #0099ff 100%);
   border: 1px solid rgba(0, 240, 255, 0.4);
   color: #ffffff;
-  padding: 14px 16px;
+  padding: 12px 14px;
   border-radius: var(--radius-md);
   font-family: var(--font-mono);
   font-size: 0.875rem;
@@ -355,7 +355,7 @@ main {
   cursor: pointer;
   box-shadow: 0 4px 16px rgba(0, 153, 255, 0.35);
   text-transform: uppercase;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
   transition: transform 0.12s ease, box-shadow 0.12s ease;
   display: flex;
   flex-direction: column;
@@ -383,7 +383,7 @@ main {
   background: rgba(0, 240, 255, 0.08);
   border: 1px solid rgba(0, 240, 255, 0.3);
   color: var(--neon-cyan);
-  padding: 9px 12px;
+  padding: 8px 12px;
   border-radius: var(--radius-sm);
   cursor: pointer;
   font-family: var(--font-mono);
@@ -391,7 +391,7 @@ main {
   font-weight: 700;
   letter-spacing: 0.5px;
   transition: background 0.15s ease, transform 0.12s ease;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
   text-align: center;
 }
 
@@ -404,126 +404,32 @@ main {
   transform: translateY(1px);
 }
 
-/* Matriz de Procesos / Pestañas visuales */
-.process-matrix-section {
-  background: var(--bg-card-subtle);
+/* Osciloscopio en Columna Izquierda */
+.chart-container-left {
+  height: 125px;
+  position: relative;
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-sm);
-  padding: 8px 10px;
-  margin-bottom: 12px;
-}
-
-.process-matrix-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 0.75rem;
-  color: var(--text-dim);
-  text-transform: uppercase;
-  margin-bottom: 6px;
-}
-
-.matrix-counter {
-  color: var(--neon-cyan);
-  font-variant-numeric: tabular-nums;
-  font-size: 0.75rem;
-}
-
-.process-matrix-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 3px;
-  max-height: 48px;
+  background: rgba(3, 5, 8, 0.6);
   overflow: hidden;
-  align-content: flex-start;
+  margin-bottom: 10px;
 }
 
-.tab-tile {
-  width: 9px;
-  height: 9px;
-  background: var(--neon-cyan);
-  border-radius: 1px;
-  opacity: 0.8;
-  animation: popIn 0.15s ease-out;
-}
-
-@keyframes popIn {
-  0% { transform: scale(0); opacity: 0; }
-  100% { transform: scale(1); opacity: 0.8; }
-}
-
-/* Multiplicadores Pesados */
-.multiplier-card {
-  background: var(--bg-card-subtle);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-sm);
-  padding: 10px;
-  margin-bottom: 8px;
-  cursor: pointer;
-  transition: border-color 0.18s ease, background 0.18s ease, transform 0.12s ease;
-}
-
-.multiplier-card:hover {
-  border-color: var(--border-highlight);
-  background: rgba(0, 240, 255, 0.04);
-}
-
-.multiplier-card.active {
-  border-color: rgba(255, 0, 68, 0.6);
-  background: rgba(255, 0, 68, 0.08);
-  box-shadow: 0 4px 16px rgba(255, 0, 68, 0.25);
-}
-
-.multiplier-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 3px;
-}
-
-.multiplier-name {
-  font-weight: 700;
-  font-size: 0.875rem;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.hotkey-pill {
-  font-size: 0.75rem;
-  color: var(--text-dim);
-}
-
-.status-tag {
-  font-size: 0.75rem;
-  padding: 2px 6px;
-  border-radius: 3px;
-  background: rgba(255, 255, 255, 0.08);
-  color: var(--text-dim);
-  font-weight: 600;
-}
-
-.multiplier-card.active .status-tag {
-  background: var(--neon-crimson);
-  color: #ffffff;
-  font-weight: 800;
-}
-
-.multiplier-desc {
-  font-size: 0.75rem;
-  color: var(--text-dim);
-  line-height: 1.35;
+#history-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
 }
 
 /* Taller de Overclock / Upgrades */
 .overclock-section {
   margin-top: auto;
-  padding-top: 8px;
+  padding-top: 6px;
   border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .overclock-header {
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 .overclock-subtext {
@@ -538,8 +444,8 @@ main {
   background: rgba(255, 255, 255, 0.02);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-sm);
-  padding: 6px 8px;
-  margin-bottom: 6px;
+  padding: 5px 8px;
+  margin-bottom: 4px;
 }
 
 .upgrade-info {
@@ -565,7 +471,7 @@ main {
   font-family: var(--font-mono);
   font-size: 0.75rem;
   font-weight: 700;
-  padding: 4px 8px;
+  padding: 3px 8px;
   border-radius: var(--radius-sm);
   cursor: pointer;
   transition: background 0.15s ease;
@@ -584,12 +490,12 @@ main {
   color: var(--text-muted);
 }
 
-/* Columna Central: Agujas y Telemetría */
+/* Columna Central: Agujas y Viewport de Animación */
 .gauges-container {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 14px;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
 
 .gauge-box {
@@ -597,7 +503,7 @@ main {
   flex-direction: column;
   align-items: center;
   background: var(--bg-card-subtle);
-  padding: 14px 12px;
+  padding: 12px 10px;
   border-radius: var(--radius-md);
   border: 1px solid var(--border-subtle);
 }
@@ -624,7 +530,7 @@ main {
   font-weight: 700;
   color: var(--text-dim);
   text-transform: uppercase;
-  margin-top: 6px;
+  margin-top: 4px;
   letter-spacing: 0.5px;
 }
 
@@ -642,7 +548,7 @@ main {
   background: rgba(255, 255, 255, 0.08);
   border-radius: 3px;
   overflow: hidden;
-  margin-top: 8px;
+  margin-top: 6px;
   position: relative;
 }
 
@@ -658,23 +564,6 @@ main {
   will-change: transform;
 }
 
-/* Gráfico de Historial */
-.chart-container {
-  flex: 1;
-  min-height: 140px;
-  position: relative;
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-sm);
-  background: rgba(3, 5, 8, 0.6);
-  overflow: hidden;
-}
-
-#history-canvas {
-  width: 100%;
-  height: 100%;
-  display: block;
-}
-
 .sustained-alert {
   display: none;
   background: rgba(255, 0, 68, 0.2);
@@ -684,7 +573,8 @@ main {
   font-weight: 700;
   padding: 6px 10px;
   text-align: center;
-  margin-top: 8px;
+  margin-top: 6px;
+  margin-bottom: 6px;
   border-radius: var(--radius-sm);
   animation: flashAlert 0.8s ease-in-out infinite alternate;
 }
@@ -694,14 +584,38 @@ main {
   to { opacity: 1; }
 }
 
-/* Columna Derecha: GPU, Parámetros y Pánico */
+/* NUEVO: Viewport de Animaciones en Columna Central */
+.chaos-canvas-container {
+  flex: 1;
+  min-height: 170px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  background: #060a12;
+  overflow: hidden;
+  position: relative;
+}
+
+#chaos-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.chaos-badge {
+  font-size: 0.75rem;
+  color: var(--neon-cyan);
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+/* Columna Derecha: GPU, Multiplicadores Compactos, Parámetros y Pánico */
 .gpu-canvas-container {
   width: 100%;
-  height: 155px;
+  height: 140px;
   border-radius: var(--radius-sm);
   overflow: hidden;
   border: 1px solid var(--border-subtle);
-  margin-bottom: 12px;
+  margin-bottom: 10px;
   background: #020305;
   position: relative;
 }
@@ -712,11 +626,80 @@ main {
   display: block;
 }
 
+/* Multiplicadores Compactos (Minimalistas: solo nombre y x) */
+.multipliers-compact-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.multiplier-compact-btn {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--bg-card-subtle);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+  cursor: pointer;
+  font-family: var(--font-mono);
+  transition: border-color 0.15s ease, background 0.15s ease, transform 0.1s ease;
+}
+
+.multiplier-compact-btn:hover {
+  border-color: var(--border-highlight);
+  background: rgba(0, 240, 255, 0.05);
+  transform: translateY(-1px);
+}
+
+.multiplier-compact-btn:active {
+  transform: translateY(1px);
+}
+
+.multiplier-compact-btn.active {
+  border-color: rgba(255, 0, 68, 0.6);
+  background: rgba(255, 0, 68, 0.1);
+  box-shadow: 0 4px 14px rgba(255, 0, 68, 0.25);
+}
+
+.mult-name {
+  font-size: 0.8rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.mult-boost {
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: var(--neon-amber);
+  margin-left: auto;
+  margin-right: 8px;
+  font-variant-numeric: tabular-nums;
+}
+
+.mult-tag {
+  font-size: 0.75rem;
+  padding: 2px 6px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-dim);
+  font-weight: 600;
+}
+
+.multiplier-compact-btn.active .mult-tag {
+  background: var(--neon-crimson);
+  color: #ffffff;
+  font-weight: 800;
+}
+
 .telemetry-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 6px 0;
+  padding: 5px 0;
   border-bottom: 1px solid rgba(255, 255, 255, 0.04);
   font-size: 0.75rem;
 }
@@ -736,7 +719,7 @@ main {
   background: linear-gradient(135deg, #b3002d 0%, #ff0044 100%);
   border: 1px solid rgba(255, 0, 68, 0.5);
   color: #ffffff;
-  padding: 13px 16px;
+  padding: 12px 16px;
   border-radius: var(--radius-md);
   font-family: var(--font-mono);
   font-weight: 800;
@@ -795,7 +778,7 @@ footer {
 .text-purple { color: var(--neon-purple); }
 
 /* ==========================================================================
-   PANTALLA DE GAME OVER: AUTÉNTICA BSOD MINIMALISTA DE WINDOWS (v1.3.0)
+   PANTALLA DE GAME OVER: AUTÉNTICA BSOD MINIMALISTA DE WINDOWS (v1.4.0)
    ========================================================================== */
 .modal-overlay {
   position: fixed;

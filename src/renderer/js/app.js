@@ -1,7 +1,7 @@
-// Controlador principal del juego y lógica de benchmarking - Windows Crasher v1.3.0
+// Controlador principal del juego y lógica de benchmarking - Windows Crasher v1.4.0
 class WindowsCrasherApp {
   constructor() {
-    this.appVersion = 'v1.3.0';
+    this.appVersion = 'v1.4.0';
     this.score = 0;
     this.tabsCount = 0;
     this.baseMultiplier = 1.0;
@@ -40,6 +40,7 @@ class WindowsCrasherApp {
 
     // Módulos
     this.visualizer = null;
+    this.tabVisualizer = null;
     this.ramEater = new window.RamEater();
     this.gpuBurner = null;
     this.soundFx = new window.SoundFxManager();
@@ -67,6 +68,12 @@ class WindowsCrasherApp {
 
     // Inicializar visualizador de agujas y gráficas
     this.visualizer = new window.HardwareVisualizer();
+
+    // Inicializar visualizador de animación de ventanas y caos
+    const chaosCanvas = document.getElementById('chaos-canvas');
+    if (chaosCanvas && window.SystemChaosVisualizer) {
+      this.tabVisualizer = new window.SystemChaosVisualizer(chaosCanvas);
+    }
 
     // Inicializar módulo GPU
     const gpuCanvas = document.getElementById('gpu-canvas');
@@ -123,19 +130,19 @@ class WindowsCrasherApp {
       });
     }
 
-    // Toggle CPU Melter
+    // Toggle CPU Melter (Compacto)
     const btnCpu = document.getElementById('btn-toggle-cpu');
     if (btnCpu) {
       btnCpu.addEventListener('click', () => this.toggleCpuMelter());
     }
 
-    // Toggle RAM Eater
+    // Toggle RAM Eater (Compacto)
     const btnRam = document.getElementById('btn-toggle-ram');
     if (btnRam) {
       btnRam.addEventListener('click', () => this.toggleRamEater());
     }
 
-    // Toggle GPU Burner
+    // Toggle GPU Burner (Compacto)
     const btnGpu = document.getElementById('btn-toggle-gpu');
     if (btnGpu) {
       btnGpu.addEventListener('click', () => this.toggleGpuBurner());
@@ -271,6 +278,9 @@ class WindowsCrasherApp {
       if (this.visualizer) {
         this.visualizer.updateMetrics(metrics);
       }
+      if (this.tabVisualizer) {
+        this.tabVisualizer.setMetrics(metrics);
+      }
       this.updateTelemetryUI(metrics);
 
       // Reproducir sonido de advertencia si nos acercamos a la zona roja
@@ -300,35 +310,18 @@ class WindowsCrasherApp {
       this.ramEater.allocateChunkMB(this.mbPerTab);
     }
 
-    // Puntuación inmediata por click que escala con la dificultad actual (más pestañas = más riesgo = más puntos)
+    // Puntuación inmediata por click que escala con la dificultad actual
     const difficultyScaling = 1 + Math.pow(this.tabsCount / 8, 1.25);
     const clickMultiplier = this.baseMultiplier * this.currentRiskMultiplier * this.scoreFreqMultiplier;
     const instantClickPoints = Math.round(count * 15 * difficultyScaling * clickMultiplier);
     this.score += instantClickPoints;
 
-    this.updateAllocatedRamUI();
-    this.updateProcessMatrix();
-  }
-
-  updateProcessMatrix() {
-    const grid = document.getElementById('process-matrix-grid');
-    const counter = document.getElementById('process-matrix-counter');
-    if (!grid || !counter) return;
-
-    counter.textContent = `${this.tabsCount} inst.`;
-
-    const currentTiles = grid.children.length;
-    const targetTiles = Math.min(80, this.tabsCount);
-
-    if (currentTiles < targetTiles) {
-      const fragment = document.createDocumentFragment();
-      for (let i = currentTiles; i < targetTiles; i++) {
-        const tile = document.createElement('div');
-        tile.className = 'tab-tile';
-        fragment.appendChild(tile);
-      }
-      grid.appendChild(fragment);
+    // Disparar animación de ventanas virtuales en el viewport central
+    if (this.tabVisualizer) {
+      this.tabVisualizer.spawnTabs(count);
     }
+
+    this.updateAllocatedRamUI();
   }
 
   toggleCpuMelter() {
@@ -340,7 +333,7 @@ class WindowsCrasherApp {
       this.isCpuMelterActive = false;
       if (btn) {
         btn.classList.remove('active');
-        btn.querySelector('.status-tag').textContent = 'INACTIVO';
+        btn.querySelector('.mult-tag').textContent = 'INACTIVO';
       }
       this.soundFx.playPower(false);
     } else {
@@ -349,11 +342,12 @@ class WindowsCrasherApp {
       this.isCpuMelterActive = true;
       if (btn) {
         btn.classList.add('active');
-        btn.querySelector('.status-tag').textContent = `ACTIVO (${coreCount} Hilos)`;
+        btn.querySelector('.mult-tag').textContent = 'ACTIVO';
       }
       this.soundFx.playPower(true);
     }
     this.recalculateMultiplier();
+    this.syncVisualizerMultipliers();
   }
 
   startCpuWorkers(count) {
@@ -386,14 +380,14 @@ class WindowsCrasherApp {
       this.isRamEaterActive = false;
       if (btn) {
         btn.classList.remove('active');
-        btn.querySelector('.status-tag').textContent = 'INACTIVO';
+        btn.querySelector('.mult-tag').textContent = 'INACTIVO';
       }
       this.soundFx.playPower(false);
     } else {
       this.isRamEaterActive = true;
       if (btn) {
         btn.classList.add('active');
-        btn.querySelector('.status-tag').textContent = 'ACTIVO (+256MB/s)';
+        btn.querySelector('.mult-tag').textContent = 'ACTIVO';
       }
       this.soundFx.playPower(true);
 
@@ -408,6 +402,7 @@ class WindowsCrasherApp {
       }, 1500);
     }
     this.recalculateMultiplier();
+    this.syncVisualizerMultipliers();
   }
 
   toggleGpuBurner() {
@@ -418,26 +413,37 @@ class WindowsCrasherApp {
       this.gpuBurner.stop();
       if (btn) {
         btn.classList.remove('active');
-        btn.querySelector('.status-tag').textContent = 'INACTIVO';
+        btn.querySelector('.mult-tag').textContent = 'INACTIVO';
       }
       this.soundFx.playPower(false);
     } else {
       this.gpuBurner.start();
       if (btn) {
         btn.classList.add('active');
-        btn.querySelector('.status-tag').textContent = 'ACTIVO (Shader 3D)';
+        btn.querySelector('.mult-tag').textContent = 'ACTIVO';
       }
       this.soundFx.playPower(true);
     }
     this.recalculateMultiplier();
+    this.syncVisualizerMultipliers();
+  }
+
+  syncVisualizerMultipliers() {
+    if (this.tabVisualizer) {
+      this.tabVisualizer.setMultiplierStates(
+        this.isCpuMelterActive,
+        this.isRamEaterActive,
+        this.gpuBurner && this.gpuBurner.isActive
+      );
+    }
   }
 
   recalculateMultiplier() {
     let mult = 1.0;
     if (this.upgrades.cryogenicCooling) mult += 0.5;
-    if (this.isCpuMelterActive) mult += 3.0; // Multiplicador aumentado a +3.0x
-    if (this.isRamEaterActive) mult += 2.5; // Multiplicador aumentado a +2.5x
-    if (this.gpuBurner && this.gpuBurner.isActive) mult += 2.0; // Multiplicador aumentado a +2.0x
+    if (this.isCpuMelterActive) mult += 3.0;
+    if (this.isRamEaterActive) mult += 2.5;
+    if (this.gpuBurner && this.gpuBurner.isActive) mult += 2.0;
 
     this.baseMultiplier = mult;
     this.updateMultiplierUI();
@@ -464,7 +470,7 @@ class WindowsCrasherApp {
       const ram = this.currentMetrics.ramPercent;
       const cpu = this.currentMetrics.cpuPercent;
 
-      // Evaluación dinámica del multiplicador de riesgo (Surfeando el límite de hardware)
+      // Evaluación dinámica del multiplicador de riesgo
       if (ram >= 88 || cpu >= 95) {
         this.currentRiskMultiplier = 2.5;
         this.riskZoneName = 'ZONA CRÍTICA';
@@ -554,6 +560,21 @@ class WindowsCrasherApp {
         sustainedEl.style.display = 'none';
       }
     }
+
+    // Badge de estado en el viewport central de caos
+    const chaosBadge = document.getElementById('chaos-status-text');
+    if (chaosBadge) {
+      if (metrics.ramPercent >= 88 || metrics.cpuPercent >= 95) {
+        chaosBadge.textContent = 'CRÍTICO';
+        chaosBadge.style.color = '#ff0044';
+      } else if (metrics.ramPercent >= 80 || metrics.cpuPercent >= 90) {
+        chaosBadge.textContent = 'PELIGRO';
+        chaosBadge.style.color = '#ffb700';
+      } else {
+        chaosBadge.textContent = 'ESTABLE';
+        chaosBadge.style.color = '#00f0ff';
+      }
+    }
   }
 
   updateAllocatedRamUI() {
@@ -576,23 +597,18 @@ class WindowsCrasherApp {
 
   // Evaluación objetiva de Tiers basada en resistencia, pestañas y multiplicadores
   evaluatePlayerRank(finalScore, tabs, survivalSec) {
-    // Tier S: Leyenda de la sobrecarga
     if ((survivalSec >= 90 && tabs >= 30) || tabs >= 60 || finalScore >= 50000) {
       return { tier: 'TIER S', title: 'DESTRUCTOR DE SILICIO' };
     }
-    // Tier A: Maestro del overclock
     if (survivalSec >= 45 || tabs >= 35 || finalScore >= 20000) {
       return { tier: 'TIER A', title: 'OVERCLOCKER MAESTRO' };
     }
-    // Tier B: Tester veterano
     if (survivalSec >= 20 || tabs >= 15 || finalScore >= 8000) {
       return { tier: 'TIER B', title: 'STRESS TESTER' };
     }
-    // Tier C: Operador estándar
     if (survivalSec >= 10 || finalScore >= 2000) {
       return { tier: 'TIER C', title: 'OPERADOR ESTÁNDAR' };
     }
-    // Tier D: Colapso prematuro
     return { tier: 'TIER D', title: 'COLAPSO TEMPRANO' };
   }
 
@@ -616,8 +632,8 @@ class WindowsCrasherApp {
     this.updateAllocatedRamUI();
 
     // 3. Resetear botones de estado
-    document.querySelectorAll('.multiplier-card').forEach((c) => c.classList.remove('active'));
-    document.querySelectorAll('.status-tag').forEach((t) => (t.textContent = 'INACTIVO'));
+    document.querySelectorAll('.multiplier-compact-btn').forEach((c) => c.classList.remove('active'));
+    document.querySelectorAll('.mult-tag').forEach((t) => (t.textContent = 'INACTIVO'));
 
     // 4. Calcular métricas finales y estadísticas de récord
     const finalScore = Math.floor(this.score);
@@ -748,6 +764,12 @@ class WindowsCrasherApp {
     this.gameStartTime = Date.now();
     this.isGameOver = false;
 
+    // Resetear visualizador de caos
+    if (this.tabVisualizer) {
+      this.tabVisualizer.clear();
+      this.tabVisualizer.setMultiplierStates(false, false, false);
+    }
+
     // Resetear mejoras del taller
     this.upgrades = { ramOptimization: false, frequencyBoost: false, cryogenicCooling: false };
     this.scoreFreqMultiplier = 1.0;
@@ -764,12 +786,6 @@ class WindowsCrasherApp {
 
     const btnCooling = document.getElementById('btn-upgrade-cooling');
     if (btnCooling) { btnCooling.textContent = '4.0k pts'; btnCooling.disabled = true; }
-
-    // Limpiar matriz de procesos
-    const grid = document.getElementById('process-matrix-grid');
-    if (grid) grid.innerHTML = '';
-    const counter = document.getElementById('process-matrix-counter');
-    if (counter) counter.textContent = '0 inst.';
 
     // Resetear textos en la UI
     document.getElementById('score-display').textContent = '0';
