@@ -1,7 +1,7 @@
-// Controlador principal del juego y lógica de benchmarking - Windows Crasher v1.7.0
+// Controlador principal del juego y lógica de benchmarking - Windows Crasher v1.8.0
 class WindowsCrasherApp {
   constructor() {
-    this.appVersion = 'v1.7.0';
+    this.appVersion = 'v1.8.0';
     this.score = 0;
     this.tabsCount = 0;
     this.peakTabs = 0;
@@ -12,6 +12,10 @@ class WindowsCrasherApp {
     this.riskZoneName = '';
     this.gameStartTime = Date.now();
     this.isGameOver = false;
+
+    // Control de inactividad del usuario (Anti-AFK / Activity Momentum)
+    this.lastUserActionTime = Date.now();
+    this.activityFactor = 1.0;
 
     // Especificaciones del hardware detectadas para diagnóstico y Game Over
     this.systemSpecs = {
@@ -46,17 +50,19 @@ class WindowsCrasherApp {
     this.scoreFreqMultiplier = 1.0;
     this.mbPerTab = 64;
 
-    // Métricas del hardware actuales
+    // Métricas del hardware actuales (incluyendo GPU 3D)
     this.currentMetrics = {
       cpuPercent: 0,
       ramPercent: 0,
+      gpuPercent: 0,
       totalMemGB: 0,
       usedMemGB: 0,
       freeMemGB: 0,
       cores: navigator.hardwareConcurrency || 4,
       tickDeltaMs: 250,
       peakCpu: 0,
-      peakRam: 0
+      peakRam: 0,
+      peakGpu: 0
     };
 
     // Módulos
@@ -163,11 +169,16 @@ class WindowsCrasherApp {
     }
   }
 
+  recordUserActivity() {
+    this.lastUserActionTime = Date.now();
+  }
+
   setupUIEvents() {
     // Botón +1 Pestaña
     const btnAddTab = document.getElementById('btn-add-tab');
     if (btnAddTab) {
       btnAddTab.addEventListener('click', () => {
+        this.recordUserActivity();
         this.soundFx.playClick();
         this.addTabs(1);
       });
@@ -177,6 +188,7 @@ class WindowsCrasherApp {
     const btnRemoveTab = document.getElementById('btn-remove-tab');
     if (btnRemoveTab) {
       btnRemoveTab.addEventListener('click', () => {
+        this.recordUserActivity();
         this.soundFx.playClick();
         this.removeTabs(1);
       });
@@ -186,6 +198,7 @@ class WindowsCrasherApp {
     const btnAdd10 = document.getElementById('btn-add-10-tabs');
     if (btnAdd10) {
       btnAdd10.addEventListener('click', () => {
+        this.recordUserActivity();
         this.soundFx.playClick();
         this.addTabs(10);
       });
@@ -195,6 +208,7 @@ class WindowsCrasherApp {
     const btnRemove10 = document.getElementById('btn-remove-10-tabs');
     if (btnRemove10) {
       btnRemove10.addEventListener('click', () => {
+        this.recordUserActivity();
         this.soundFx.playClick();
         this.removeTabs(10);
       });
@@ -204,6 +218,7 @@ class WindowsCrasherApp {
     const btnAudio = document.getElementById('btn-audio-toggle');
     if (btnAudio) {
       btnAudio.addEventListener('click', () => {
+        this.recordUserActivity();
         const isMuted = this.soundFx.toggleMute();
         btnAudio.textContent = isMuted ? '🔇' : '🔊';
         btnAudio.title = isMuted ? 'Sonido silenciado (M para activar)' : 'Silenciar sonido (Atajo: M)';
@@ -213,19 +228,28 @@ class WindowsCrasherApp {
     // Toggle CPU Melter (Compacto)
     const btnCpu = document.getElementById('btn-toggle-cpu');
     if (btnCpu) {
-      btnCpu.addEventListener('click', () => this.toggleCpuMelter());
+      btnCpu.addEventListener('click', () => {
+        this.recordUserActivity();
+        this.toggleCpuMelter();
+      });
     }
 
     // Toggle RAM Eater (Compacto)
     const btnRam = document.getElementById('btn-toggle-ram');
     if (btnRam) {
-      btnRam.addEventListener('click', () => this.toggleRamEater());
+      btnRam.addEventListener('click', () => {
+        this.recordUserActivity();
+        this.toggleRamEater();
+      });
     }
 
     // Toggle GPU Burner (Compacto)
     const btnGpu = document.getElementById('btn-toggle-gpu');
     if (btnGpu) {
-      btnGpu.addEventListener('click', () => this.toggleGpuBurner());
+      btnGpu.addEventListener('click', () => {
+        this.recordUserActivity();
+        this.toggleGpuBurner();
+      });
     }
 
     // Botón de Pánico
@@ -301,6 +325,7 @@ class WindowsCrasherApp {
 
       if (e.code === 'Space' || e.code === 'Enter' || e.key === '+') {
         e.preventDefault();
+        this.recordUserActivity();
         if (this.isGameOver) {
           this.soundFx.playReset();
           this.restartGame();
@@ -314,6 +339,7 @@ class WindowsCrasherApp {
         }
       } else if (e.code === 'Backspace' || e.key === '-') {
         e.preventDefault();
+        this.recordUserActivity();
         if (!this.isGameOver) {
           this.soundFx.playClick();
           if (e.shiftKey) {
@@ -323,12 +349,16 @@ class WindowsCrasherApp {
           }
         }
       } else if (e.key === '1') {
+        this.recordUserActivity();
         this.toggleCpuMelter();
       } else if (e.key === '2') {
+        this.recordUserActivity();
         this.toggleRamEater();
       } else if (e.key === '3') {
+        this.recordUserActivity();
         this.toggleGpuBurner();
       } else if (e.key.toLowerCase() === 'm') {
+        this.recordUserActivity();
         const btnAudio = document.getElementById('btn-audio-toggle');
         const isMuted = this.soundFx.toggleMute();
         if (btnAudio) {
@@ -365,19 +395,29 @@ class WindowsCrasherApp {
 
     // Escuchar telemetría cada 250ms desde el hilo backend
     window.electronAPI.onHardwareMetrics((metrics) => {
-      this.currentMetrics = metrics;
+      this.currentMetrics = { ...this.currentMetrics, ...metrics };
+
+      // Consultar carga estimada de la GPU en tiempo real
+      const gpu = this.gpuBurner ? this.gpuBurner.getGpuLoad(this.tabsCount) : 0;
+      this.currentMetrics.gpuPercent = gpu;
+      if (gpu > (this.currentMetrics.peakGpu || 0)) {
+        this.currentMetrics.peakGpu = gpu;
+      }
+
+      const combinedMetrics = { ...this.currentMetrics, gpuPercent: gpu };
+
       if (this.visualizer) {
-        this.visualizer.updateMetrics(metrics);
+        this.visualizer.updateMetrics(combinedMetrics);
       }
       if (this.tabVisualizer) {
-        this.tabVisualizer.setMetrics(metrics);
+        this.tabVisualizer.setMetrics(combinedMetrics);
       }
-      this.updateTelemetryUI(metrics);
+      this.updateTelemetryUI(combinedMetrics);
 
       // Reproducir sonido de advertencia si nos acercamos a la zona roja
       if (!this.isGameOver) {
         const now = Date.now();
-        if ((metrics.ramPercent >= 88 || metrics.cpuPercent >= 95) && now - this.lastWarningTime > 2000) {
+        if ((metrics.ramPercent >= 88 || metrics.cpuPercent >= 95 || gpu >= 92) && now - this.lastWarningTime > 2000) {
           this.lastWarningTime = now;
           this.soundFx.playWarning();
         }
@@ -584,17 +624,26 @@ class WindowsCrasherApp {
   }
 
   startScoreLoop() {
-    setInterval(() => {
+    this.scoreInterval = setInterval(() => {
       if (this.isGameOver) return;
 
       const ram = this.currentMetrics.ramPercent;
       const cpu = this.currentMetrics.cpuPercent;
+      const gpu = this.gpuBurner ? this.gpuBurner.getGpuLoad(this.tabsCount) : 0;
+      this.currentMetrics.gpuPercent = gpu;
+      if (gpu > (this.currentMetrics.peakGpu || 0)) {
+        this.currentMetrics.peakGpu = gpu;
+      }
+      const gpuEl = document.getElementById('telemetry-gpu');
+      if (gpuEl) {
+        gpuEl.textContent = `${gpu.toFixed(1)}%`;
+      }
 
-      // Evaluación dinámica del multiplicador de riesgo base
-      if (ram >= 88 || cpu >= 95) {
+      // Evaluación dinámica del multiplicador de riesgo base (CPU, RAM y GPU)
+      if (ram >= 88 || cpu >= 95 || gpu >= 92) {
         this.currentRiskMultiplier = 2.5;
         this.riskZoneName = 'ZONA CRÍTICA';
-      } else if (ram >= 80 || cpu >= 90) {
+      } else if (ram >= 80 || cpu >= 90 || gpu >= 85) {
         this.currentRiskMultiplier = 1.5;
         this.riskZoneName = 'ALTO RIESGO';
       } else {
@@ -602,15 +651,16 @@ class WindowsCrasherApp {
         this.riskZoneName = '';
       }
 
-      // MECÁNICA DE HABILIDAD Y BALANCE DE HARDWARE: RAZOR'S EDGE (Al Filo del Precipicio)
-      // Cuanto más cerca esté la RAM del umbral de muerte del 92% (o CPU de 98%),
-      // mayor es el multiplicador exponencial de habilidad (hasta x3.5 adicional).
+      // MECÁNICA RAZOR'S EDGE: Al filo del colapso (RAM 92%, CPU 98% o GPU 90%+)
       if (ram >= 89.0 && ram < 92.0) {
         const proximity = (ram - 89.0) / 3.0;
         this.razorEdgeMultiplier = 1.0 + (proximity * 2.5);
       } else if (cpu >= 94.0 && cpu < 98.0) {
         const proximity = (cpu - 94.0) / 4.0;
         this.razorEdgeMultiplier = 1.0 + (proximity * 2.0);
+      } else if (gpu >= 90.0) {
+        const proximity = (gpu - 90.0) / 8.0;
+        this.razorEdgeMultiplier = 1.0 + Math.min(1.5, proximity * 1.5);
       } else {
         this.razorEdgeMultiplier = 1.0;
       }
@@ -622,13 +672,40 @@ class WindowsCrasherApp {
                               (this.isRamEaterActive ? 1 : 0) +
                               (this.gpuBurner && this.gpuBurner.isActive ? 1 : 0);
 
-      // GESTIÓN DE RACHA Y TIEMPO BAJO ESTRÉS (Anti-AFK)
-      if (ram >= 78 || cpu >= 88) {
+      // CADENCIA DE ACTIVIDAD DEL USUARIO (Anti-Idle / No subida rápida sin tocar nada)
+      const idleSec = (Date.now() - this.lastUserActionTime) / 1000;
+      let cadenceBadgeText = '⚡ ACTIVO';
+      let cadenceClass = 'cadence-badge cadence-active';
+
+      if (idleSec <= 2.0) {
+        this.activityFactor = 1.0;
+        cadenceBadgeText = '⚡ ACTIVO';
+        cadenceClass = 'cadence-badge cadence-active';
+      } else if (idleSec <= 5.0) {
+        // Desaceleración progresiva al dejar de interactuar
+        this.activityFactor = Math.max(0.35, 1.0 - (idleSec - 2.0) * 0.22);
+        cadenceBadgeText = '⏳ EN ESPERA';
+        cadenceClass = 'cadence-badge cadence-stagnant';
+      } else {
+        // Estancamiento: los puntos casi no suben (decae hasta un 94% menos)
+        this.activityFactor = Math.max(0.06, 0.35 * Math.pow(0.65, idleSec - 5.0));
+        cadenceBadgeText = '💤 INACTIVO';
+        cadenceClass = 'cadence-badge cadence-idle';
+      }
+
+      const cadenceBadgeEl = document.getElementById('activity-cadence-badge');
+      if (cadenceBadgeEl) {
+        cadenceBadgeEl.textContent = cadenceBadgeText;
+        cadenceBadgeEl.className = cadenceClass;
+      }
+
+      // GESTIÓN DE RACHA Y TIEMPO BAJO ESTRÉS (Solo avanza con actividad o peligro real)
+      if ((ram >= 78 || cpu >= 88 || gpu >= 85) && idleSec <= 5.0) {
         this.stressStreakSeconds += 0.1;
         this.highStressSeconds += 0.1;
         this.totalStressSeconds += 0.1;
-      } else if (ram < 68 && cpu < 75) {
-        this.stressStreakSeconds = Math.max(0, this.stressStreakSeconds - 0.2);
+      } else if (idleSec > 5.0 || (ram < 68 && cpu < 75 && gpu < 60)) {
+        this.stressStreakSeconds = Math.max(0, this.stressStreakSeconds - 0.25);
       }
 
       // Nivel de Racha de Estrés
@@ -654,17 +731,18 @@ class WindowsCrasherApp {
       if (this.tabsCount === 0 && activeMultCount === 0) {
         this.currentFlowRate = 0;
       } else {
-        // Densidad de Estrés no lineal calibrada para Tier S exigente
-        const loadNorm = (cpu + ram) / 100;
-        const stressDensityFactor = Math.pow(Math.max(0.15, loadNorm), 1.7);
-        const baseActiveIntensity = (this.tabsCount * 18) + (activeMultCount * 36);
+        // Densidad de hardware incluyendo GPU (CPU + RAM + GPU 3D)
+        const loadNorm = (cpu + ram + (gpu * 1.2)) / 220;
+        const stressDensityFactor = Math.pow(Math.max(0.12, loadNorm), 1.95);
+        const baseActiveIntensity = (this.tabsCount * 18) + (activeMultCount * 45);
         const totalFlowRate = baseActiveIntensity * 
                               stressDensityFactor * 
                               this.baseMultiplier * 
                               this.currentRiskMultiplier * 
                               this.streakMultiplier * 
                               this.razorEdgeMultiplier * 
-                              this.scoreFreqMultiplier;
+                              this.scoreFreqMultiplier *
+                              this.activityFactor;
 
         this.currentFlowRate = Math.round(totalFlowRate);
         if (this.currentFlowRate > this.peakFlowRate) {
@@ -685,9 +763,9 @@ class WindowsCrasherApp {
       const flowEl = document.getElementById('flow-rate-display');
       if (flowEl) {
         flowEl.textContent = `+${this.currentFlowRate.toLocaleString()}`;
-        if (this.currentFlowRate >= 600) {
+        if (this.currentFlowRate >= 800) {
           flowEl.className = 'flow-val critical-stress';
-        } else if (this.currentFlowRate >= 220) {
+        } else if (this.currentFlowRate >= 300) {
           flowEl.className = 'flow-val high-stress';
         } else {
           flowEl.className = 'flow-val';
@@ -786,37 +864,39 @@ class WindowsCrasherApp {
     return 'CRITICAL_HARDWARE_LIMIT_EXCEEDED';
   }
 
-  // Evaluación objetiva de Tiers basada en intensidad de estrés (pts/s), pestañas y habilidad
+  // Evaluación rigurosa de Tiers (S Tier estrictamente calibrado para evitar facilidades)
   evaluatePlayerRank(finalScore, peakTabs, survivalSec, totalStressSec, avgRate) {
     // Si el jugador estuvo AFK o inactivo sin abrir apenas pestañas ni generar estrés
-    if (peakTabs <= 1 && avgRate < 50) {
+    if (peakTabs <= 1 && avgRate < 70) {
       return { tier: 'TIER D', title: 'INACTIVO / SIN ESTRÉS', tierClass: 'tier-d' };
     }
 
-    // TIER S: Destructor de Silicio (Auténtica proeza de riesgo extremo y maestría)
-    // Exigente: requiere tasa promedio masiva (>=1,800 pts/s), al menos 30s de supervivencia en zona de peligro
-    // y puntuación alta (>=80,000 pts)
-    if ((avgRate >= 1800 && totalStressSec >= 30 && finalScore >= 80000) || (finalScore >= 160000 && avgRate >= 1400)) {
+    // TIER S: Destructor de Silicio (Auténtica proeza de riesgo extremo, habilidad y reflejos)
+    // Criterios muy estrictos para evitar que sea fácil de alcanzar:
+    // Requiere >= 120,000 pts, tasa media >= 2,200 pts/s, >= 40s de estrés crítico sostenido y >= 16 pestañas vivas
+    // O bien >= 250,000 pts con >= 1,800 pts/s
+    if ((finalScore >= 120000 && avgRate >= 2200 && totalStressSec >= 40 && peakTabs >= 16) || 
+        (finalScore >= 250000 && avgRate >= 1800 && totalStressSec >= 30)) {
       return { tier: 'TIER S', title: 'DESTRUCTOR DE SILICIO', tierClass: 'tier-s' };
     }
 
-    // TIER A: Overclocker Maestro (Muy buen manejo del hardware y riesgo considerable)
-    if ((avgRate >= 800 && totalStressSec >= 15 && finalScore >= 35000) || (finalScore >= 60000 && avgRate >= 600)) {
+    // TIER A: Overclocker Maestro (Manejo experto de hardware con alto riesgo sostenido)
+    if ((avgRate >= 1200 && totalStressSec >= 20 && finalScore >= 55000) || 
+        (finalScore >= 100000 && avgRate >= 1000)) {
       return { tier: 'TIER A', title: 'OVERCLOCKER MAESTRO', tierClass: 'tier-a' };
     }
 
     // TIER B: Stress Tester (Uso activo de multiplicadores y pestañas)
-    if (avgRate >= 350 || (peakTabs >= 10 && finalScore >= 15000) || finalScore >= 25000) {
+    if (avgRate >= 500 || (peakTabs >= 10 && finalScore >= 25000) || finalScore >= 40000) {
       return { tier: 'TIER B', title: 'STRESS TESTER', tierClass: 'tier-b' };
     }
 
     // TIER C: Operador Cauteloso (Poco riesgo o colapso rápido sin exprimir el sistema)
-    if (avgRate >= 80 || peakTabs >= 3 || finalScore >= 3000) {
+    if (avgRate >= 150 || peakTabs >= 3 || finalScore >= 6000) {
       return { tier: 'TIER C', title: 'OPERADOR CAUTELOSO', tierClass: 'tier-c' };
     }
 
-    // TIER D: Colapso Prematuro / Inactivo
-    return { tier: 'TIER D', title: 'COLAPSO PREMATURO', tierClass: 'tier-d' };
+    return { tier: 'TIER D', title: 'INACTIVO / SIN ESTRÉS', tierClass: 'tier-d' };
   }
 
   triggerGameOver(reason, metrics) {
@@ -852,6 +932,7 @@ class WindowsCrasherApp {
 
     const peakCpu = metrics ? (metrics.peakCpu || this.currentMetrics.peakCpu) : this.currentMetrics.peakCpu;
     const peakRam = metrics ? (metrics.peakRam || this.currentMetrics.peakRam) : this.currentMetrics.peakRam;
+    const peakGpu = metrics ? (metrics.peakGpu || this.currentMetrics.peakGpu) : this.currentMetrics.peakGpu;
 
     // Actualizar récords locales
     let isNewRecord = false;
@@ -890,6 +971,7 @@ class WindowsCrasherApp {
       survivalTime: survivalFormatted,
       peakCpu: `${peakCpu}%`,
       peakRam: `${peakRam}%`,
+      peakGpu: `${Math.round(peakGpu)}%`,
       freedMB: `${freedMB} MB`,
       hardware: {
         cpu: `${this.systemSpecs.cpuModel} (${this.systemSpecs.cpuCores} núcleos)`,
@@ -927,6 +1009,9 @@ class WindowsCrasherApp {
 
     const peakCpuEl = document.getElementById('modal-peak-cpu');
     if (peakCpuEl) peakCpuEl.textContent = `${peakCpu}%`;
+
+    const peakGpuEl = document.getElementById('modal-peak-gpu');
+    if (peakGpuEl) peakGpuEl.textContent = `${Math.round(peakGpu)}%`;
 
     const freedEl = document.getElementById('modal-freed-ram');
     if (freedEl) freedEl.textContent = `${freedMB} MB`;
@@ -966,7 +1051,7 @@ class WindowsCrasherApp {
       `Tasa de Estrés:   ${r.stressRate}`,
       `Pestañas Pico:    ${r.tabs}`,
       `Supervivencia:    ${r.survivalTime}`,
-      `Picos de Carga:   RAM ${r.peakRam} | CPU ${r.peakCpu}`,
+      `Picos de Carga:   RAM ${r.peakRam} | CPU ${r.peakCpu} | GPU ${r.peakGpu}`,
       `RAM Liberada:     ${r.freedMB}`,
       `----------------------------------------------------`,
       `ESPECIFICACIONES DEL EQUIPO:`,

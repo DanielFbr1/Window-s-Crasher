@@ -2,6 +2,53 @@
 
 Este documento mantiene un registro cronológico de todas las versiones, modificaciones y mejoras implementadas en el proyecto para facilitar el contexto y seguimiento a usuarios y agentes.
 
+## [v1.8.0] - 2026-09-04
+### Telemetría Completa de GPU (3er Dial Analógico y Osciloscopio), Freno de Flujo por Inactividad (Anti-AFK) y Recalibración Rigurosa de Tier S
+- **Freno de Flujo por Inactividad (Mecánica Anti-AFK / Idle Decay)**:
+  - **Problema resuelto**: Anteriormente, el jugador podía encender multiplicadores y dejar el juego sin interactuar (AFK) acumulando millones de puntos pasivamente a gran velocidad.
+  - **Solución implementada**:
+    - Se registra en tiempo real la marca de tiempo de interacción del usuario (`lastUserActionTime`) en cualquiera de los botones de pestañas (+1, -1, +10, -10), alternancia de multiplicadores o pulsación de atajos de teclado.
+    - Si transcurren más de **2.0 segundos** sin acciones del jugador, se aplica un factor de amortiguación exponencial sobre la tasa de flujo: `activityFactor = Math.max(0.06, Math.exp(-0.35 * (idleSec - 2.0)))`.
+    - A los 4.5 segundos sin acción, el flujo de puntos se reduce en un **65%**, y tras 10 segundos cae un **94%** (dejando solo un goteo residual del 6%).
+    - Si la inactividad supera los **5.0 segundos**, la racha de sobrecarga acumulada (`stressStreakSeconds`) se congela y comienza a degradarse progresivamente (`-0.15s` por ciclo).
+    - **Indicador de Cadencia en Tiempo Real**: Nuevo badge dinámico en la tarjeta de Tasa de Puntos:
+      - `⚡ ACTIVO`: Neón cian mientras el jugador presiona botones y micro-gestiona activamente.
+      - `⏳ EN ESPERA`: Ámbar tras 2 segundos sin interacción (inicio de freno).
+      - `💤 INACTIVO`: Gris atenuado tras 5 segundos (flujo frenado y racha enfriándose).
+- **Integración y Telemetría Completa de la GPU**:
+  - **Motor de Carga de GPU (`gpuBurner.js`)**:
+    - Implementación de `getGpuLoad(tabCount)` que mide la latencia de renderizado del shader WebGL en milisegundos, iteraciones fractales activas y carga en reposo por pestañas virtuales. Proporciona una señal fiable de estrés de GPU (85-98% en modo activo `GPU Burner`, 5-25% en reposo con carga).
+  - **Tercer Manómetro Analógico de Hardware (Tríada CPU, RAM y GPU 3D)**:
+    - Se añade un dial SVG circular independiente de alta resolución para la GPU en la sección de telemetría superior.
+    - Aguja física violeta neón (`#c084fc`), escala de 0 a 100%, arco dinámico de degradado púrpura y lectura numérica precisa.
+  - **Trazado de GPU en el Osciloscopio Central**:
+    - Buffer circular de 60 muestras de telemetría de GPU en `gauges.js`.
+    - Trazado de onda en tiempo real en color violeta luminoso (`#c084fc`) superpuesto a las curvas de CPU (cian) y RAM (ámbar/rojo).
+    - Se incorpora la etiqueta interactiva `■ GPU` en la leyenda del osciloscopio.
+  - **Impacto de la GPU en la Fórmula de Puntuación**:
+    - La GPU se integra en el cálculo de densidad de carga: `loadNorm = (cpu + ram + (gpu * 1.2)) / 220;` elevado al exponente cuadrático `1.95`.
+    - El factor de riesgo general ahora evalúa la tríada completa (`CPU`, `RAM` y `GPU`), premiando exprimir los tres componentes a la vez.
+  - **Diagnóstico y Forense de Game Over (BSOD)**:
+    - Indicador de telemetría `Carga GPU (3D Shader): XX%` en la tarjeta de Diagnóstico.
+    - Registro de `Pico GPU: XX%` en las estadísticas rápidas del pantallazo azul y en el informe forense exportable al portapapeles.
+- **Recalibración Rigurosa de Rangos y Dificultad para Tier S**:
+  - **Problema resuelto**: Llegar al rango S era excesivamente accesible sin requerir pericia ni riesgo constante.
+  - **Nueva Matriz de Requisitos Mínimos Simultáneos**:
+    - **Tier S ("Overclocking God")**:
+      - $\ge 120,000$ puntos totales Y
+      - $\ge 2,200$ pts/segundo de velocidad promedio sostenida Y
+      - $\ge 40$ segundos acumulados en zona de alto estrés Y
+      - $\ge 16$ pestañas activas.
+      - (O alternativamente: $\ge 250,000$ puntos brutos con ritmo sostenido $\ge 1,800$ pts/s).
+    - **Tier A ("Chaos Master")**: $\ge 65,000$ pts Y ritmo $\ge 1,200$ pts/s.
+    - **Tier B ("Stress Veteran")**: $\ge 30,000$ pts Y ritmo $\ge 600$ pts/s.
+    - **Tier C ("Stable Engine")**: $\ge 10,000$ pts.
+    - **Tier D ("Kernel Novice")**: $< 10,000$ pts.
+- **Sincronización de Versión Global v1.8.0**:
+  - Versión elevada a **`v1.8.0`** en `index.html`, `app.js`, `package.json`, `tauri.conf.json`, `src-tauri/Cargo.toml` y `start.bat`.
+
+---
+
 ## [v1.7.0] - 2026-09-04
 ### Animaciones de Alta Fidelidad (RAM & GPU Melter), Matriz 2x2 con Botón -10 Pestañas, Especificaciones Forenses en BSOD y Atajos Completos
 - **Animaciones Avanzadas de RAM y GPU Melter en el Simulador de Caos (`tabVisualizer.js`)**:

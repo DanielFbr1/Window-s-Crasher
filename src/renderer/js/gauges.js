@@ -1,20 +1,26 @@
-// Módulo de renderizado de agujas SVG y gráfica de telemetría en tiempo real
+// Módulo de renderizado de agujas SVG y gráfica de telemetría en tiempo real - v1.8.0 (CPU, RAM y GPU)
 class HardwareVisualizer {
   constructor(options = {}) {
     this.historyLength = 60; // 60 puntos (15 segundos a 250ms)
     this.cpuHistory = new Array(this.historyLength).fill(0);
     this.ramHistory = new Array(this.historyLength).fill(0);
+    this.gpuHistory = new Array(this.historyLength).fill(0);
 
     this.chartCanvas = document.getElementById('history-canvas');
     this.chartCtx = this.chartCanvas ? this.chartCanvas.getContext('2d') : null;
 
-    // Elementos de agujas SVG
+    // Elementos de agujas SVG (CPU, RAM y GPU)
     this.cpuDial = document.getElementById('cpu-gauge-needle');
     this.ramDial = document.getElementById('ram-gauge-needle');
+    this.gpuDial = document.getElementById('gpu-gauge-needle');
+
     this.cpuValueText = document.getElementById('cpu-value-display');
     this.ramValueText = document.getElementById('ram-value-display');
+    this.gpuValueText = document.getElementById('gpu-value-display');
+
     this.cpuProgressBar = document.getElementById('cpu-progress-fill');
     this.ramProgressBar = document.getElementById('ram-progress-fill');
+    this.gpuProgressBar = document.getElementById('gpu-progress-fill');
 
     this.resizeCanvas();
     window.addEventListener('resize', () => this.resizeCanvas());
@@ -31,12 +37,17 @@ class HardwareVisualizer {
     }
   }
 
-  getColorForPercent(pct, isRam = false) {
-    if (isRam) {
+  getColorForPercent(pct, type = 'cpu') {
+    if (type === 'ram') {
       if (pct >= 92) return '#ff0044'; // Zona crítica Watchdog
       if (pct >= 80) return '#ff5500';
       if (pct >= 60) return '#ffb700';
       return '#00ff88';
+    } else if (type === 'gpu') {
+      if (pct >= 90) return '#f43f5e'; // Saturación alta GPU
+      if (pct >= 75) return '#c084fc';
+      if (pct >= 40) return '#a855f7';
+      return '#38bdf8';
     } else {
       if (pct >= 98) return '#ff0044'; // Zona crítica Watchdog
       if (pct >= 85) return '#ff5500';
@@ -46,34 +57,47 @@ class HardwareVisualizer {
   }
 
   updateMetrics(metrics) {
-    const { cpuPercent, ramPercent } = metrics;
+    const { cpuPercent = 0, ramPercent = 0, gpuPercent = 0 } = metrics;
 
-    // Actualizar historial
+    // Actualizar historiales (60 muestras a 250ms = 15 segundos)
     this.cpuHistory.push(cpuPercent);
     this.cpuHistory.shift();
+
     this.ramHistory.push(ramPercent);
     this.ramHistory.shift();
 
-    // Actualizar textos
+    this.gpuHistory.push(gpuPercent);
+    this.gpuHistory.shift();
+
+    // Actualizar textos de valores
     if (this.cpuValueText) {
       this.cpuValueText.textContent = `${cpuPercent.toFixed(1)}%`;
-      this.cpuValueText.style.color = this.getColorForPercent(cpuPercent, false);
+      this.cpuValueText.style.color = this.getColorForPercent(cpuPercent, 'cpu');
     }
     if (this.ramValueText) {
       this.ramValueText.textContent = `${ramPercent.toFixed(1)}%`;
-      this.ramValueText.style.color = this.getColorForPercent(ramPercent, true);
+      this.ramValueText.style.color = this.getColorForPercent(ramPercent, 'ram');
+    }
+    if (this.gpuValueText) {
+      this.gpuValueText.textContent = `${gpuPercent.toFixed(1)}%`;
+      this.gpuValueText.style.color = this.getColorForPercent(gpuPercent, 'gpu');
     }
 
     // Actualizar barras de progreso aceleradas por GPU (scaleX)
     if (this.cpuProgressBar) {
       const scaleCpu = Math.min(1, Math.max(0, cpuPercent / 100));
       this.cpuProgressBar.style.transform = `scaleX(${scaleCpu})`;
-      this.cpuProgressBar.style.backgroundColor = this.getColorForPercent(cpuPercent, false);
+      this.cpuProgressBar.style.backgroundColor = this.getColorForPercent(cpuPercent, 'cpu');
     }
     if (this.ramProgressBar) {
       const scaleRam = Math.min(1, Math.max(0, ramPercent / 100));
       this.ramProgressBar.style.transform = `scaleX(${scaleRam})`;
-      this.ramProgressBar.style.backgroundColor = this.getColorForPercent(ramPercent, true);
+      this.ramProgressBar.style.backgroundColor = this.getColorForPercent(ramPercent, 'ram');
+    }
+    if (this.gpuProgressBar) {
+      const scaleGpu = Math.min(1, Math.max(0, gpuPercent / 100));
+      this.gpuProgressBar.style.transform = `scaleX(${scaleGpu})`;
+      this.gpuProgressBar.style.backgroundColor = this.getColorForPercent(gpuPercent, 'gpu');
     }
 
     // Actualizar rotación de agujas analógicas (-90deg a +90deg)
@@ -85,8 +109,12 @@ class HardwareVisualizer {
       const ramAngle = -90 + (ramPercent / 100) * 180;
       this.ramDial.style.transform = `rotate(${ramAngle}deg)`;
     }
+    if (this.gpuDial) {
+      const gpuAngle = -90 + (gpuPercent / 100) * 180;
+      this.gpuDial.style.transform = `rotate(${gpuAngle}deg)`;
+    }
 
-    // Renderizar gráfico
+    // Renderizar gráfico del osciloscopio
     this.drawChart();
   }
 
@@ -112,7 +140,7 @@ class HardwareVisualizer {
 
     // Línea de peligro del Watchdog (RAM 92% en rojo punteado)
     const yWatchdogRam = h - (92 / 100) * h;
-    ctx.strokeStyle = 'rgba(255, 0, 68, 0.5)';
+    ctx.strokeStyle = 'rgba(255, 0, 68, 0.55)';
     ctx.setLineDash([4, 4]);
     ctx.beginPath();
     ctx.moveTo(0, yWatchdogRam);
@@ -120,11 +148,14 @@ class HardwareVisualizer {
     ctx.stroke();
     ctx.setLineDash([]);
 
-    // Dibujar serie de CPU
+    // Dibujar serie de CPU (Cian)
     this.drawLineSeries(ctx, this.cpuHistory, '#00f0ff', w, h);
 
-    // Dibujar serie de RAM
+    // Dibujar serie de RAM (Verde)
     this.drawLineSeries(ctx, this.ramHistory, '#00ff88', w, h);
+
+    // Dibujar serie de GPU (Púrpura Neón)
+    this.drawLineSeries(ctx, this.gpuHistory, '#c084fc', w, h);
   }
 
   drawLineSeries(ctx, data, color, w, h) {

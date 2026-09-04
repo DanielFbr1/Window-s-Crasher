@@ -157,9 +157,26 @@ class GpuBurner {
     const iterations = this.intensity === 1 ? 64 : (this.intensity === 2 ? 140 : 256);
     gl.uniform1i(this.uIterations, iterations);
 
+    const t0 = performance.now();
     gl.drawArrays(gl.TRIANGLES, 0, 6);
+    this.lastFrameDurationMs = performance.now() - t0;
 
     this.animationFrameId = requestAnimationFrame(() => this.render());
+  }
+
+  getGpuLoad(tabCount = 0) {
+    if (this.isActive) {
+      // GPU Burner activo: sobrecarga masiva de raymarching
+      const jitter = Math.sin(Date.now() * 0.006) * 2.5;
+      const baseBurn = 88.0 + Math.min(8.0, (this.lastFrameDurationMs || 2.0) * 1.8);
+      this.estimatedGpuLoad = Math.min(98.5, Math.max(82.0, baseBurn + jitter));
+    } else {
+      // Carga base según pestañas y composición de ventanas
+      const tabLoad = Math.min(25.0, tabCount * 0.8);
+      const idleJitter = Math.sin(Date.now() * 0.003) * 1.5;
+      this.estimatedGpuLoad = Math.max(4.0, Math.min(32.0, 6.0 + tabLoad + idleJitter));
+    }
+    return parseFloat(this.estimatedGpuLoad.toFixed(1));
   }
 }
 

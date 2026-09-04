@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Windows Crasher - v1.7.0</title>
+  <title>Windows Crasher - v1.8.0</title>
   <link rel="stylesheet" href="styles/dashboard.css" />
 </head>
 <body>
@@ -13,7 +13,7 @@
     <div class="logo-container">
       <span class="logo-icon">⚡</span>
       <h1>WINDOWS CRASHER</h1>
-      <span class="version-badge" id="app-version-badge">v1.7.0</span>
+      <span class="version-badge" id="app-version-badge">v1.8.0</span>
     </div>
 
     <div class="header-status">
@@ -38,8 +38,7 @@
       <!-- Umbrales de Seguridad -->
       <div class="thresholds-info">
         <span>RAM: <strong class="text-danger">92%</strong></span>
-        <span>|</span>
-        <span>CPU: <strong class="text-danger">98% (&gt;3s)</strong></span>
+        <span>CPU: <strong class="text-danger">98%</strong></span>
       </div>
     </div>
   </header>
@@ -61,7 +60,10 @@
       <!-- Tasa de Flujo de Puntuación & Racha de Estrés en Tiempo Real -->
       <div class="flow-rate-card">
         <div class="flow-rate-col">
-          <span class="flow-label">TASA DE FLUJO</span>
+          <div class="flow-rate-title-row">
+            <span class="flow-label">TASA DE FLUJO</span>
+            <span class="cadence-badge cadence-active" id="activity-cadence-badge" title="Cadencia de actividad: si dejas de interactuar, el flujo se frena">⚡ ACTIVO</span>
+          </div>
           <div class="flow-rate-val-group">
             <span class="flow-val" id="flow-rate-display">+0</span>
             <span class="flow-unit">pts/s</span>
@@ -99,6 +101,10 @@
       <div class="telemetry-row">
         <span class="telemetry-label">Memoria Libre SO:</span>
         <span class="telemetry-val" id="telemetry-freeram">--</span>
+      </div>
+      <div class="telemetry-row">
+        <span class="telemetry-label">Carga GPU (3D Shader):</span>
+        <span class="telemetry-val text-purple" id="telemetry-gpu">0.0%</span>
       </div>
       <div class="telemetry-row">
         <span class="telemetry-label">RAM Asignada por Juego:</span>
@@ -153,7 +159,7 @@
         <span class="telemetry-freq">4 Hz (250ms)</span>
       </div>
 
-      <div class="gauges-container">
+      <div class="gauges-container gauges-tri-container">
         <!-- Aguja de CPU -->
         <div class="gauge-box">
           <div class="gauge-svg-wrap">
@@ -166,8 +172,8 @@
               </g>
             </svg>
           </div>
-          <div class="gauge-label">CARGA DE CPU GLOBAL</div>
-          <div class="gauge-value" id="cpu-value-display">0.0%</div>
+          <div class="gauge-label">CPU GLOBAL</div>
+          <div class="gauge-value text-cyan" id="cpu-value-display">0.0%</div>
           <div class="progress-track">
             <div id="cpu-progress-fill" class="progress-fill"></div>
           </div>
@@ -185,10 +191,29 @@
               </g>
             </svg>
           </div>
-          <div class="gauge-label">MEMORIA RAM TOTAL</div>
-          <div class="gauge-value" id="ram-value-display">0.0%</div>
+          <div class="gauge-label">RAM TOTAL</div>
+          <div class="gauge-value text-green" id="ram-value-display">0.0%</div>
           <div class="progress-track">
             <div id="ram-progress-fill" class="progress-fill"></div>
+          </div>
+        </div>
+
+        <!-- Aguja de GPU 3D -->
+        <div class="gauge-box">
+          <div class="gauge-svg-wrap">
+            <svg class="gauge-svg" viewBox="0 0 180 100">
+              <path d="M 20 90 A 70 70 0 0 1 160 90" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="12" stroke-linecap="round" />
+              <path d="M 148 68 A 70 70 0 0 1 160 90" fill="none" stroke="var(--neon-crimson)" stroke-width="12" stroke-linecap="round" />
+              <g id="gpu-gauge-needle" class="gauge-needle">
+                <line x1="90" y1="90" x2="90" y2="25" stroke="#c084fc" stroke-width="3" stroke-linecap="round" />
+                <circle cx="90" cy="90" r="6" fill="#c084fc" />
+              </g>
+            </svg>
+          </div>
+          <div class="gauge-label">GPU 3D SHADER</div>
+          <div class="gauge-value text-purple" id="gpu-value-display">0.0%</div>
+          <div class="progress-track">
+            <div id="gpu-progress-fill" class="progress-fill" style="background: var(--neon-purple);"></div>
           </div>
         </div>
       </div>
@@ -200,10 +225,11 @@
 
       <!-- Osciloscopio Reubicado (Debajo de telemetría y encima del simulador) -->
       <div class="card-title section-title-spacing">
-        <span>Osciloscopio (15s)</span>
+        <span>Osciloscopio Tri-Serie (15s)</span>
         <div class="chart-legend-group">
           <span class="legend-cpu">■ CPU</span>
           <span class="legend-ram">■ RAM</span>
+          <span class="legend-gpu">■ GPU</span>
           <span class="legend-limit">-- 92%</span>
         </div>
       </div>
@@ -221,13 +247,13 @@
       </div>
     </section>
 
-    <!-- Columna Derecha: Todos los Botones Accionables (+1, -1, +10, -10, Multiplicadores y Pánico) -->
+    <!-- Columna Derecha: Todos los Botones Accionables -->
     <section class="card">
       <div class="card-title">
         <span>Panel de Control &amp; Carga</span>
       </div>
 
-      <!-- Acciones de Pestañas (Rejilla Simétrica 2x2 para gestión táctica) -->
+      <!-- Acciones de Pestañas -->
       <div class="tab-actions-matrix">
         <button id="btn-add-tab" class="action-btn-matrix action-btn-add" title="Abrir 1 pestaña de memoria (Atajo: ESPACIO o ENTER)">
           <span class="btn-main-title">+1 PESTAÑA</span>
@@ -292,7 +318,7 @@
   <!-- Pie de página con versión explícita y atajos -->
   <footer>
     <div>
-      Windows Crasher Engine • Versión <strong class="text-cyan" id="footer-version-text">v1.7.0</strong>
+      Windows Crasher Engine • Versión <strong class="text-cyan" id="footer-version-text">v1.8.0</strong>
     </div>
     <div class="footer-shortcuts">
       <span><span class="shortcut-pill">ESPACIO</span> +1</span>
@@ -307,7 +333,7 @@
   </footer>
 
   <!-- =====================================================================
-       PANTALLA DE GAME OVER: AUTÉNTICA BSOD MINIMALISTA DE WINDOWS (v1.7.0)
+       PANTALLA DE GAME OVER: AUTÉNTICA BSOD MINIMALISTA DE WINDOWS (v1.8.0)
        ===================================================================== -->
   <div id="game-over-modal" class="modal-overlay">
     <div class="bsod-minimal">
@@ -341,6 +367,7 @@
         <span class="bsod-stat-item">Supervivencia: <strong id="modal-survival-time">00:00</strong></span>
         <span class="bsod-stat-item">Pico RAM: <strong id="modal-peak-ram">0%</strong></span>
         <span class="bsod-stat-item">Pico CPU: <strong id="modal-peak-cpu">0%</strong></span>
+        <span class="bsod-stat-item">Pico GPU: <strong id="modal-peak-gpu">0%</strong></span>
         <span class="bsod-stat-item">RAM Liberada: <strong id="modal-freed-ram">0 MB</strong></span>
       </div>
 
