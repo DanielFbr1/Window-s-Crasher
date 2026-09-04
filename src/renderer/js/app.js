@@ -1,7 +1,7 @@
-// Controlador principal del juego y lógica de benchmarking - Windows Crasher v2.0.0
+// Controlador principal del juego y lógica de benchmarking - Windows Crasher v2.1.0
 class WindowsCrasherApp {
   constructor() {
-    this.appVersion = 'v2.0.0';
+    this.appVersion = 'v2.1.0';
     this.score = 0;
     this.tabsCount = 0;
     this.peakTabs = 0;
@@ -493,6 +493,15 @@ class WindowsCrasherApp {
 
     const tabCountEl = document.getElementById('tabs-count-display');
     if (tabCountEl) tabCountEl.textContent = this.tabsCount;
+
+    // Al restar pestañas, se pierden puntos (-50 pts por cada pestaña restada)
+    const pointsLost = actualRemove * 50;
+    this.score = Math.max(0, this.score - pointsLost);
+
+    const scoreEl = document.getElementById('score-display');
+    if (scoreEl) {
+      scoreEl.textContent = Math.floor(this.score).toLocaleString();
+    }
 
     // Liberar memoria física asignada (descompresión de emergencia)
     this.ramEater.releaseChunk(actualRemove);

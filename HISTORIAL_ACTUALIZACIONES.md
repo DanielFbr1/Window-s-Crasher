@@ -2,6 +2,22 @@
 
 Este documento mantiene un registro cronológico de todas las versiones, modificaciones y mejoras implementadas en el proyecto para facilitar el contexto y seguimiento a usuarios y agentes.
 
+## [v2.1.0] - 2026-09-04
+### Penalización de Puntuación al Restar Pestañas (-50 pts por pestaña) y Etiquetas Informativas en Matriz de Control
+- **Penalización Simétrica por Descompresión de Memoria**:
+  - Al restar pestañas (`−1 PESTAÑA` o `−10 PESTAÑAS`), ahora se descuentan **50 puntos por cada pestaña restada** (`-50 pts` y `-500 pts` respectivamente).
+  - La deducción se aplica de forma inmediata al marcador (`this.score = Math.max(0, this.score - pointsLost)`), impidiendo que el valor caiga por debajo de cero.
+  - **Eliminación de Exploits de Farmeo**: Corrige la asimetría por la cual un usuario podía farmear puntos pulsando repetidamente `+10` y `−10` pestañas sin riesgo ni coste de puntuación. Ahora purgar pestañas alivia la presión sobre el umbral crítico de RAM (90%), pero penaliza directamente el resultado del benchmark.
+- **Actualización de Etiquetas Visuales en la Matriz de Acciones**:
+  - `+1 PESTAÑA`: `(+50 PTS / 64MB)`
+  - `−1 PESTAÑA`: `(−50 PTS / ALIVIO)`
+  - `+10 PESTAÑAS`: `(+500 PTS / RÁFAGA)`
+  - `−10 PESTAÑAS`: `(−500 PTS / PURGA)`
+- **Sincronización Global de Versión v2.1.0**:
+  - Versión elevada a **`v2.1.0`** en `index.html`, `app.js`, `gauges.js`, `main.js`, `package.json`, `tauri.conf.json`, `src-tauri/Cargo.toml` y `start.bat`.
+
+---
+
 ## [v2.0.0] - 2026-09-04
 ### Reducción de Límites de Watchdog (CPU 95%, RAM 90%, GPU 90%) y Nueva Filosofía de Puntuación Condicionada a Multiplicadores
 - **Reducción de Límites de Hardware del Watchdog**:
