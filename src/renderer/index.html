@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Windows Crasher - v1.6.0</title>
+  <title>Windows Crasher - v1.7.0</title>
   <link rel="stylesheet" href="styles/dashboard.css" />
 </head>
 <body>
@@ -13,7 +13,7 @@
     <div class="logo-container">
       <span class="logo-icon">⚡</span>
       <h1>WINDOWS CRASHER</h1>
-      <span class="version-badge" id="app-version-badge">v1.6.0</span>
+      <span class="version-badge" id="app-version-badge">v1.7.0</span>
     </div>
 
     <div class="header-status">
@@ -58,13 +58,13 @@
         <div class="score-big" id="score-display">0</div>
       </div>
 
-      <!-- Tasa de Flujo de Puntuación & Racha de Estrés en Tiempo Real -->
+      <!-- Valor por Clic & Racha de Estrés en Tiempo Real -->
       <div class="flow-rate-card">
         <div class="flow-rate-col">
-          <span class="flow-label">TASA DE FLUJO</span>
+          <span class="flow-label">VALOR POR CLIC</span>
           <div class="flow-rate-val-group">
-            <span class="flow-val" id="flow-rate-display">+0</span>
-            <span class="flow-unit">pts/s</span>
+            <span class="flow-val" id="click-value-display">+10</span>
+            <span class="flow-unit">pts/clic</span>
           </div>
         </div>
         <div class="flow-rate-col text-right">
@@ -76,13 +76,17 @@
         </div>
       </div>
 
-      <div class="stats-grid">
+      <div class="stats-grid stats-grid-3">
         <div class="stat-box">
-          <div class="stat-label">Pestañas Vivas</div>
+          <div class="stat-label">Pestañas</div>
           <div class="stat-value" id="tabs-count-display">0</div>
         </div>
         <div class="stat-box">
-          <div class="stat-label">Supervivencia</div>
+          <div class="stat-label">Clics (CPS)</div>
+          <div class="stat-value"><span id="total-clicks-display">0</span> <small class="text-dim" id="cps-display">(0.0)</small></div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">Tiempo</div>
           <div class="stat-value" id="survival-time">00:00</div>
         </div>
       </div>
@@ -213,15 +217,16 @@
 
       <!-- Viewport de Animación de Ventanas y Caos en Tiempo Real -->
       <div class="card-title section-title-spacing">
-        <span>Simulador de Ventanas &amp; Caos</span>
+        <span>Simulador &amp; Pulso de Caos</span>
+        <span class="chaos-click-hint">CLIC EN SIMULADOR = +PTS</span>
         <span id="chaos-status-text" class="chaos-badge">ESTABLE</span>
       </div>
-      <div class="chaos-canvas-container">
+      <div class="chaos-canvas-container" id="chaos-canvas-container" title="Haz clic en este canvas para cosechar puntos bajo estrés">
         <canvas id="chaos-canvas"></canvas>
       </div>
     </section>
 
-    <!-- Columna Derecha: Todos los Botones Accionables (+1, -1, +10, Multiplicadores y Pánico) -->
+    <!-- Columna Derecha: Todos los Botones Accionables (+1, -1, +10, Pulso, Multiplicadores y Pánico) -->
     <section class="card">
       <div class="card-title">
         <span>Panel de Control &amp; Carga</span>
@@ -242,6 +247,12 @@
 
       <button id="btn-add-10-tabs" class="btn-secondary">
         +10 PESTAÑAS EN RÁFAGA
+      </button>
+
+      <!-- Botón de Pulso de Overclock (Cosecha puntos activos sin alterar memoria) -->
+      <button id="btn-overclock-pulse" class="btn-overclock-pulse" title="Cosechar puntos inmediatos sin consumir memoria adicional (Atajo: Tecla C o Clic en simulador)">
+        <span>⚡ PULSO DE OVERCLOCK (+PTS)</span>
+        <span class="btn-hotkey-hint">[C / CLIC]</span>
       </button>
 
       <!-- Multiplicadores Pesados Compactos -->
@@ -282,11 +293,12 @@
   <!-- Pie de página con versión explícita y atajos -->
   <footer>
     <div>
-      Windows Crasher Engine • Versión <strong class="text-cyan" id="footer-version-text">v1.6.0</strong>
+      Windows Crasher Engine • Versión <strong class="text-cyan" id="footer-version-text">v1.7.0</strong>
     </div>
     <div class="footer-shortcuts">
       <span><span class="shortcut-pill">ESPACIO</span> +1 Pestaña</span>
       <span><span class="shortcut-pill">BACKSPACE</span> -1 Pestaña</span>
+      <span><span class="shortcut-pill">C / CLIC</span> Pulso Pts</span>
       <span><span class="shortcut-pill">1-3</span> Cargas</span>
       <span><span class="shortcut-pill">M</span> Audio</span>
       <span><span class="shortcut-pill">ESC</span> Pánico</span>
@@ -295,7 +307,7 @@
   </footer>
 
   <!-- =====================================================================
-       PANTALLA DE GAME OVER: AUTÉNTICA BSOD MINIMALISTA DE WINDOWS (v1.5.0)
+       PANTALLA DE GAME OVER: AUTÉNTICA BSOD MINIMALISTA DE WINDOWS (v1.7.0)
        ===================================================================== -->
   <div id="game-over-modal" class="modal-overlay">
     <div class="bsod-minimal">
@@ -311,7 +323,7 @@
       <!-- Puntuación Heroica y Tier -->
       <div class="bsod-score-tier-row">
         <div class="bsod-score-display">
-          <span class="bsod-score-label">PUNTUACIÓN</span>
+          <span class="bsod-score-label">PUNTUACIÓN POR CLICS</span>
           <span class="bsod-score-num" id="modal-score">0</span>
           <span class="bsod-score-pts">PTS</span>
         </div>
@@ -322,14 +334,41 @@
         </div>
       </div>
 
-      <!-- Estadísticas rápidas compactas con Tasa Media de Estrés -->
+      <!-- Estadísticas de Clics, Rendimiento y Estrés -->
       <div class="bsod-quick-stats">
-        <span class="bsod-stat-item">Tasa Media Estrés: <strong id="modal-stress-rate">0 pts/s</strong></span>
+        <span class="bsod-stat-item">Clics Totales: <strong id="modal-clicks">0</strong></span>
+        <span class="bsod-stat-item">Cadencia Máx: <strong id="modal-peak-cps">0.0 CPS</strong></span>
+        <span class="bsod-stat-item">Valor Clic Promedio: <strong id="modal-stress-rate">0 pts/clic</strong></span>
         <span class="bsod-stat-item">Pestañas: <strong id="modal-tabs">0</strong></span>
         <span class="bsod-stat-item">Supervivencia: <strong id="modal-survival-time">00:00</strong></span>
         <span class="bsod-stat-item">Pico RAM: <strong id="modal-peak-ram">0%</strong></span>
         <span class="bsod-stat-item">Pico CPU: <strong id="modal-peak-cpu">0%</strong></span>
-        <span class="bsod-stat-item">RAM Liberada: <strong id="modal-freed-ram">0 MB</strong></span>
+      </div>
+
+      <!-- COMPONENTES DEL DISPOSITIVO DETECTADOS -->
+      <div class="bsod-hardware-box">
+        <div class="bsod-hw-header">
+          <span class="bsod-hw-badge">PERFIL DE HARDWARE</span>
+          <span>COMPONENTES DETECTADOS EN ESTE DISPOSITIVO</span>
+        </div>
+        <div class="bsod-hw-grid">
+          <div class="bsod-hw-row">
+            <span class="bsod-hw-label">PROCESADOR (CPU):</span>
+            <span class="bsod-hw-value text-cyan" id="bsod-hw-cpu">Detectando procesador...</span>
+          </div>
+          <div class="bsod-hw-row">
+            <span class="bsod-hw-label">MEMORIA RAM TOTAL:</span>
+            <span class="bsod-hw-value text-green" id="bsod-hw-ram">Detectando memoria...</span>
+          </div>
+          <div class="bsod-hw-row">
+            <span class="bsod-hw-label">TARJETA GRÁFICA (GPU):</span>
+            <span class="bsod-hw-value text-purple" id="bsod-hw-gpu">Detectando acelerador...</span>
+          </div>
+          <div class="bsod-hw-row">
+            <span class="bsod-hw-label">SISTEMA OPERATIVO:</span>
+            <span class="bsod-hw-value text-yellow" id="bsod-hw-os">Detectando plataforma...</span>
+          </div>
+        </div>
       </div>
 
       <!-- Código de parada directo -->
@@ -343,7 +382,7 @@
           Reiniciar Equipo <span class="bsod-shortcut-hint">[R]</span>
         </button>
         <button id="btn-copy-report" class="btn-bsod-secondary">
-          Copiar Resumen
+          Copiar Informe y Specs
         </button>
       </div>
     </div>

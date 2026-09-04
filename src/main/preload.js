@@ -1,4 +1,5 @@
 const { contextBridge, ipcRenderer } = require('electron');
+const os = require('os');
 
 contextBridge.exposeInMainWorld('electronAPI', {
   // Suscripción a métricas cada 250ms
@@ -26,5 +27,30 @@ contextBridge.exposeInMainWorld('electronAPI', {
   },
 
   // Obtener versión de la app
-  getVersion: () => 'v1.6.0'
+  getVersion: () => 'v1.7.0',
+
+  // Obtener componentes de hardware del dispositivo para la pantalla de Game Over
+  getSystemSpecs: () => {
+    try {
+      const cpus = os.cpus() || [];
+      return {
+        cpuModel: cpus[0]?.model || 'Procesador Desconocido',
+        cpuCores: cpus.length,
+        cpuSpeedMHz: cpus[0]?.speed || 0,
+        totalRamGB: (os.totalmem() / (1024 ** 3)).toFixed(1),
+        platform: `${os.type()} ${os.arch()}`,
+        release: os.release()
+      };
+    } catch (err) {
+      return {
+        cpuModel: 'CPU Genérica x64',
+        cpuCores: 4,
+        cpuSpeedMHz: 2400,
+        totalRamGB: '16.0',
+        platform: 'Windows_NT x64',
+        release: '10.0'
+      };
+    }
+  }
 });
+

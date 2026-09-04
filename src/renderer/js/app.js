@@ -1,7 +1,7 @@
-// Controlador principal del juego y lógica de benchmarking - Windows Crasher v1.6.0
+// Controlador principal del juego y lógica de benchmarking - Windows Crasher v1.7.0
 class WindowsCrasherApp {
   constructor() {
-    this.appVersion = 'v1.6.0';
+    this.appVersion = 'v1.7.0';
     this.score = 0;
     this.tabsCount = 0;
     this.peakTabs = 0;
@@ -12,6 +12,26 @@ class WindowsCrasherApp {
     this.riskZoneName = '';
     this.gameStartTime = Date.now();
     this.isGameOver = false;
+
+    // Sistema de puntuación EXCLUSIVA POR CLICS (v1.7.0)
+    // Los puntos NUNCA suben automáticamente en un bucle temporal; requieren clics activos
+    this.currentClickValue = 10;
+    this.totalClicks = 0;
+    this.peakClickValue = 10;
+    this.recentClicksTimestamps = [];
+    this.peakCps = 0;
+    this.currentCps = 0;
+
+    // Componentes del dispositivo detectados para pantalla de Game Over y diagnóstico
+    this.systemSpecs = {
+      cpuModel: 'Detectando procesador...',
+      cpuCores: navigator.hardwareConcurrency || 4,
+      cpuSpeedMHz: 0,
+      totalRamGB: '16.0',
+      gpuRenderer: 'Detectando acelerador gráfico...',
+      platform: 'Windows_NT x64',
+      release: '10.0'
+    };
 
     // Métricas de estrés continuo y racha (Anti-AFK)
     this.currentFlowRate = 0;
@@ -96,11 +116,53 @@ class WindowsCrasherApp {
     // Configurar atajos de teclado
     this.setupKeyboardShortcuts();
 
+    // Detectar especificaciones del dispositivo
+    this.detectHardwareSpecs();
+
     // Conectar eventos IPC de Electron
     this.setupIPC();
 
     // Iniciar bucle de actualización de puntuación y tiempo
     this.startScoreLoop();
+  }
+
+  detectHardwareSpecs() {
+    // 1. Obtener specs del SO desde preload/Electron
+    if (window.electronAPI && typeof window.electronAPI.getSystemSpecs === 'function') {
+      try {
+        const specs = window.electronAPI.getSystemSpecs();
+        if (specs) {
+          this.systemSpecs.cpuModel = specs.cpuModel || this.systemSpecs.cpuModel;
+          this.systemSpecs.cpuCores = specs.cpuCores || this.systemSpecs.cpuCores;
+          this.systemSpecs.cpuSpeedMHz = specs.cpuSpeedMHz || 0;
+          this.systemSpecs.totalRamGB = specs.totalRamGB || this.systemSpecs.totalRamGB;
+          this.systemSpecs.platform = specs.platform || this.systemSpecs.platform;
+          this.systemSpecs.release = specs.release || this.systemSpecs.release;
+        }
+      } catch (err) {
+        console.warn('[HardwareSpecs] Error al obtener specs del sistema:', err);
+      }
+    }
+
+    // 2. Obtener acelerador gráfico / GPU mediante WebGL unmasked renderer
+    try {
+      const canvas = document.createElement('canvas');
+      const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+      if (gl) {
+        const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+        if (debugInfo) {
+          const unmasked = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
+          if (unmasked) {
+            this.systemSpecs.gpuRenderer = unmasked;
+          }
+        }
+        if (!this.systemSpecs.gpuRenderer || this.systemSpecs.gpuRenderer.startsWith('Detectando')) {
+          this.systemSpecs.gpuRenderer = gl.getParameter(gl.RENDERER) || 'Acelerador Gráfico WebGL';
+        }
+      }
+    } catch (e) {
+      this.systemSpecs.gpuRenderer = 'GPU Estándar Compatible';
+    }
   }
 
   updateHighScoreDisplay() {
@@ -114,27 +176,43 @@ class WindowsCrasherApp {
     // Botón +1 Pestaña
     const btnAddTab = document.getElementById('btn-add-tab');
     if (btnAddTab) {
-      btnAddTab.addEventListener('click', () => {
+      btnAddTab.addEventListener('click', (e) => {
         this.soundFx.playClick();
-        this.addTabs(1);
+        this.addTabs(1, e);
       });
     }
 
     // Botón −1 Pestaña (Alivio táctico de emergencia)
     const btnRemoveTab = document.getElementById('btn-remove-tab');
     if (btnRemoveTab) {
-      btnRemoveTab.addEventListener('click', () => {
+      btnRemoveTab.addEventListener('click', (e) => {
         this.soundFx.playClick();
-        this.removeTabs(1);
+        this.removeTabs(1, e);
       });
     }
 
     // Botón +10 Pestañas
     const btnAdd10 = document.getElementById('btn-add-10-tabs');
     if (btnAdd10) {
-      btnAdd10.addEventListener('click', () => {
+      btnAdd10.addEventListener('click', (e) => {
         this.soundFx.playClick();
-        this.addTabs(10);
+        this.addTabs(10, e);
+      });
+    }
+
+    // Botón de Pulso de Overclock (+PTS directo sin alterar memoria)
+    const btnPulse = document.getElementById('btn-overclock-pulse');
+    if (btnPulse) {
+      btnPulse.addEventListener('click', (e) => {
+        this.performPulseClick(e);
+      });
+    }
+
+    // Clic directo en el canvas de caos para cosechar puntos
+    const chaosContainer = document.getElementById('chaos-canvas-container');
+    if (chaosContainer) {
+      chaosContainer.addEventListener('click', (e) => {
+        this.performPulseClick(e);
       });
     }
 
@@ -252,6 +330,10 @@ class WindowsCrasherApp {
           this.soundFx.playClick();
           this.removeTabs(1);
         }
+      } else if (e.code === 'KeyC' || e.key === 'c' || e.key === 'C') {
+        if (!this.isGameOver) {
+          this.performPulseClick(null);
+        }
       } else if (e.key === '1') {
         this.toggleCpuMelter();
       } else if (e.key === '2') {
@@ -274,6 +356,97 @@ class WindowsCrasherApp {
         }
       }
     });
+  }
+
+  performPulseClick(e) {
+    if (this.isGameOver) return;
+    this.soundFx.playClick();
+    this.performClick(e, 'pulse', 1);
+
+    // Disparar chispas de energía en el simulador
+    if (this.tabVisualizer && typeof this.tabVisualizer.triggerPulse === 'function') {
+      this.tabVisualizer.triggerPulse(e);
+    }
+  }
+
+  performClick(e, source = 'general', count = 1) {
+    if (this.isGameOver) return;
+
+    const now = Date.now();
+    for (let i = 0; i < count; i++) {
+      this.recentClicksTimestamps.push(now);
+    }
+    this.totalClicks += count;
+
+    // Multiplicador táctico por tipo de acción
+    let multiplierSource = 1.0;
+    if (source === 'add_tab') {
+      multiplierSource = 1.25; // Bono por arriesgar memoria
+    } else if (source === 'remove_tab') {
+      multiplierSource = 1.0;  // Alivio táctico
+    } else if (source === 'pulse') {
+      multiplierSource = 1.15; // Pulso de overclock
+    } else if (source === 'mult') {
+      multiplierSource = 2.0;  // Sobrecarga extrema
+    }
+
+    const earnedPoints = Math.max(1, Math.round(this.currentClickValue * count * multiplierSource));
+    this.score += earnedPoints;
+
+    // Actualizar High Score si se supera en tiempo real
+    if (Math.floor(this.score) > this.highScore) {
+      this.highScore = Math.floor(this.score);
+      localStorage.setItem('wc_high_score', this.highScore.toString());
+      this.updateHighScoreDisplay();
+    }
+
+    // Efecto visual de números flotantes (+XXX)
+    this.spawnFloatingClickNumber(e, earnedPoints, this.currentRiskMultiplier >= 2.5 || this.razorEdgeMultiplier >= 2.5);
+
+    // Actualizar UI inmediata
+    const scoreEl = document.getElementById('score-display');
+    if (scoreEl) {
+      scoreEl.textContent = Math.floor(this.score).toLocaleString();
+    }
+
+    const totalClicksEl = document.getElementById('total-clicks-display');
+    if (totalClicksEl) {
+      totalClicksEl.textContent = this.totalClicks.toLocaleString();
+    }
+  }
+
+  spawnFloatingClickNumber(e, points, isCritical) {
+    let clientX = window.innerWidth / 2;
+    let clientY = window.innerHeight / 2;
+
+    if (e && typeof e.clientX === 'number' && e.clientX > 0) {
+      clientX = e.clientX;
+      clientY = e.clientY;
+    } else {
+      const btn = document.getElementById('btn-overclock-pulse') || document.getElementById('btn-add-tab');
+      if (btn) {
+        const rect = btn.getBoundingClientRect();
+        clientX = rect.left + rect.width / 2;
+        clientY = rect.top + rect.height / 2;
+      }
+    }
+
+    const offsetX = (Math.random() - 0.5) * 28;
+    const offsetY = (Math.random() - 0.5) * 16;
+
+    const floatEl = document.createElement('div');
+    floatEl.className = `click-floating-number ${isCritical ? 'critical' : points >= 300 ? 'high' : ''}`;
+    floatEl.textContent = `+${points.toLocaleString()}`;
+    floatEl.style.left = `${clientX + offsetX}px`;
+    floatEl.style.top = `${clientY + offsetY}px`;
+
+    document.body.appendChild(floatEl);
+
+    setTimeout(() => {
+      if (floatEl && floatEl.parentNode) {
+        floatEl.parentNode.removeChild(floatEl);
+      }
+    }, 650);
   }
 
   triggerPanic() {
@@ -316,7 +489,7 @@ class WindowsCrasherApp {
     });
   }
 
-  addTabs(count = 1) {
+  addTabs(count = 1, e = null) {
     if (this.isGameOver) return;
 
     this.tabsCount += count;
@@ -331,11 +504,8 @@ class WindowsCrasherApp {
       this.ramEater.allocateChunkMB(this.mbPerTab);
     }
 
-    // Puntuación inmediata por click que escala con la dificultad actual y racha de estrés
-    const difficultyScaling = 1 + Math.pow(this.tabsCount / 8, 1.25);
-    const clickMultiplier = this.baseMultiplier * this.currentRiskMultiplier * this.streakMultiplier * this.scoreFreqMultiplier;
-    const instantClickPoints = Math.round(count * 20 * difficultyScaling * clickMultiplier);
-    this.score += instantClickPoints;
+    // PUNTUACIÓN PURA POR CLIC (v1.7.0)
+    this.performClick(e, 'add_tab', count);
 
     // Disparar animación de ventanas virtuales en el viewport central
     if (this.tabVisualizer) {
@@ -346,7 +516,7 @@ class WindowsCrasherApp {
     this.checkMilestones();
   }
 
-  removeTabs(count = 1) {
+  removeTabs(count = 1, e = null) {
     if (this.isGameOver || this.tabsCount <= 0) return;
 
     const actualRemove = Math.min(this.tabsCount, count);
@@ -357,6 +527,9 @@ class WindowsCrasherApp {
 
     // Liberar memoria física asignada (descompresión de emergencia)
     this.ramEater.releaseChunk(actualRemove);
+
+    // PUNTUACIÓN PURA POR CLIC DE ALIVIO (v1.7.0)
+    this.performClick(e, 'remove_tab', actualRemove);
 
     // Eliminar ventanas virtuales del canvas de caos con efecto de desintegración
     if (this.tabVisualizer) {
@@ -387,6 +560,7 @@ class WindowsCrasherApp {
         btn.querySelector('.mult-tag').textContent = 'ACTIVO';
       }
       this.soundFx.playPower(true);
+      this.performClick(null, 'mult', 1);
     }
     this.recalculateMultiplier();
     this.syncVisualizerMultipliers();
@@ -432,6 +606,7 @@ class WindowsCrasherApp {
         btn.querySelector('.mult-tag').textContent = 'ACTIVO';
       }
       this.soundFx.playPower(true);
+      this.performClick(null, 'mult', 1);
 
       this.ramEater.allocateChunkMB(256);
       this.updateAllocatedRamUI();
@@ -465,6 +640,7 @@ class WindowsCrasherApp {
         btn.querySelector('.mult-tag').textContent = 'ACTIVO';
       }
       this.soundFx.playPower(true);
+      this.performClick(null, 'mult', 1);
     }
     this.recalculateMultiplier();
     this.syncVisualizerMultipliers();
@@ -576,29 +752,31 @@ class WindowsCrasherApp {
         this.streakMultiplier = 1.0;
       }
 
-      // Si el jugador está completamente AFK (0 pestañas y sin multiplicadores), flujo = 0 absoluto
-      if (this.tabsCount === 0 && activeMultCount === 0) {
-        this.currentFlowRate = 0;
-      } else {
-        // Densidad de Estrés no lineal calibrada para Tier S exigente
-        const loadNorm = (cpu + ram) / 100;
-        const stressDensityFactor = Math.pow(Math.max(0.15, loadNorm), 1.7);
-        const baseActiveIntensity = (this.tabsCount * 18) + (activeMultCount * 36);
-        const totalFlowRate = baseActiveIntensity * 
-                              stressDensityFactor * 
-                              this.baseMultiplier * 
-                              this.currentRiskMultiplier * 
-                              this.streakMultiplier * 
-                              this.razorEdgeMultiplier * 
-                              this.scoreFreqMultiplier;
+      // CÁLCULO DINÁMICO DEL VALOR POR CLIC (v1.7.0)
+      // Los puntos SOLO se otorgan al hacer clic activo; NUNCA de forma automática o pasiva
+      const loadNorm = (cpu + ram) / 100;
+      const stressDensityFactor = Math.pow(Math.max(0.12, loadNorm), 1.85);
+      const baseClickPower = 10 + (this.tabsCount * 6) + (activeMultCount * 22);
 
-        this.currentFlowRate = Math.round(totalFlowRate);
-        if (this.currentFlowRate > this.peakFlowRate) {
-          this.peakFlowRate = this.currentFlowRate;
-        }
+      const calculatedClickVal = baseClickPower * 
+                                stressDensityFactor * 
+                                this.baseMultiplier * 
+                                this.currentRiskMultiplier * 
+                                this.streakMultiplier * 
+                                this.razorEdgeMultiplier * 
+                                this.scoreFreqMultiplier;
 
-        // Incrementar puntuación cada 100ms
-        this.score += (totalFlowRate * 0.1);
+      this.currentClickValue = Math.max(1, Math.round(calculatedClickVal));
+      if (this.currentClickValue > this.peakClickValue) {
+        this.peakClickValue = this.currentClickValue;
+      }
+
+      // Cálculo de Cadencia (CPS - Clics por Segundo) en ventana deslizante de 1.0s
+      const now = Date.now();
+      this.recentClicksTimestamps = this.recentClicksTimestamps.filter(t => (now - t) <= 1000);
+      this.currentCps = this.recentClicksTimestamps.length;
+      if (this.currentCps > this.peakCps) {
+        this.peakCps = this.currentCps;
       }
 
       // Actualizar UI de Puntuación
@@ -607,17 +785,27 @@ class WindowsCrasherApp {
         scoreEl.textContent = Math.floor(this.score).toLocaleString();
       }
 
-      // Actualizar UI de Tasa de Flujo en vivo
-      const flowEl = document.getElementById('flow-rate-display');
-      if (flowEl) {
-        flowEl.textContent = `+${this.currentFlowRate.toLocaleString()}`;
-        if (this.currentFlowRate >= 600) {
-          flowEl.className = 'flow-val critical-stress';
-        } else if (this.currentFlowRate >= 220) {
-          flowEl.className = 'flow-val high-stress';
+      // Actualizar UI de Valor por Clic
+      const clickValEl = document.getElementById('click-value-display');
+      if (clickValEl) {
+        clickValEl.textContent = `+${this.currentClickValue.toLocaleString()}`;
+        if (this.currentRiskMultiplier >= 2.5 || this.razorEdgeMultiplier >= 2.5) {
+          clickValEl.className = 'flow-val critical-stress';
+        } else if (this.currentRiskMultiplier >= 1.5 || this.razorEdgeMultiplier >= 1.5) {
+          clickValEl.className = 'flow-val high-stress';
         } else {
-          flowEl.className = 'flow-val';
+          clickValEl.className = 'flow-val';
         }
+      }
+
+      // Actualizar UI de Clics Totales y CPS
+      const totalClicksEl = document.getElementById('total-clicks-display');
+      if (totalClicksEl) {
+        totalClicksEl.textContent = this.totalClicks.toLocaleString();
+      }
+      const cpsEl = document.getElementById('cps-display');
+      if (cpsEl) {
+        cpsEl.textContent = `(${this.currentCps.toFixed(1)} CPS)`;
       }
 
       // Actualizar UI de Racha
@@ -712,32 +900,32 @@ class WindowsCrasherApp {
     return 'CRITICAL_HARDWARE_LIMIT_EXCEEDED';
   }
 
-  // Evaluación objetiva de Tiers basada en intensidad de estrés (pts/s), pestañas y habilidad
-  evaluatePlayerRank(finalScore, peakTabs, survivalSec, totalStressSec, avgRate) {
-    // Si el jugador estuvo AFK o inactivo sin abrir apenas pestañas ni generar estrés
-    if (peakTabs <= 1 && avgRate < 50) {
-      return { tier: 'TIER D', title: 'INACTIVO / SIN ESTRÉS', tierClass: 'tier-d' };
+  // Evaluación objetiva de Tiers basada en Puntuación por Clics, Clics Totales y Estrés
+  evaluatePlayerRank(finalScore, peakTabs, survivalSec, totalStressSec, totalClicks, peakCps, avgClickVal) {
+    // Si el jugador estuvo AFK o inactivo sin hacer clics
+    if (totalClicks < 5 || finalScore < 300) {
+      return { tier: 'TIER D', title: 'INACTIVO / SIN CLICS', tierClass: 'tier-d' };
     }
 
-    // TIER S: Destructor de Silicio (Auténtica proeza de riesgo extremo y maestría)
-    // Exigente: requiere tasa promedio masiva (>=1,800 pts/s), al menos 30s de supervivencia en zona de peligro
-    // y puntuación alta (>=80,000 pts)
-    if ((avgRate >= 1800 && totalStressSec >= 30 && finalScore >= 80000) || (finalScore >= 160000 && avgRate >= 1400)) {
+    // TIER S: Destructor de Silicio (Auténtica proeza de reflejos y estrés extremo)
+    // Requiere clics activos masivos (>=50 clics), supervivencia sostenida en zona de peligro (>=18s)
+    // y puntuación por clics alta (>=40,000 pts) o puntuación masiva (>=75,000 pts con >=70 clics)
+    if ((finalScore >= 40000 && totalClicks >= 50 && totalStressSec >= 18) || (finalScore >= 75000 && totalClicks >= 70)) {
       return { tier: 'TIER S', title: 'DESTRUCTOR DE SILICIO', tierClass: 'tier-s' };
     }
 
-    // TIER A: Overclocker Maestro (Muy buen manejo del hardware y riesgo considerable)
-    if ((avgRate >= 800 && totalStressSec >= 15 && finalScore >= 35000) || (finalScore >= 60000 && avgRate >= 600)) {
+    // TIER A: Overclocker Maestro (Buen ritmo de clics bajo alto riesgo)
+    if ((finalScore >= 18000 && totalClicks >= 25 && totalStressSec >= 8) || (finalScore >= 35000 && totalClicks >= 40)) {
       return { tier: 'TIER A', title: 'OVERCLOCKER MAESTRO', tierClass: 'tier-a' };
     }
 
-    // TIER B: Stress Tester (Uso activo de multiplicadores y pestañas)
-    if (avgRate >= 350 || (peakTabs >= 10 && finalScore >= 15000) || finalScore >= 25000) {
+    // TIER B: Stress Tester (Uso activo de multiplicadores y clics rítmicos)
+    if (finalScore >= 6000 && totalClicks >= 15) {
       return { tier: 'TIER B', title: 'STRESS TESTER', tierClass: 'tier-b' };
     }
 
-    // TIER C: Operador Cauteloso (Poco riesgo o colapso rápido sin exprimir el sistema)
-    if (avgRate >= 80 || peakTabs >= 3 || finalScore >= 3000) {
+    // TIER C: Operador Cauteloso (Sesión breve con pocos clics)
+    if (finalScore >= 1200 && totalClicks >= 6) {
       return { tier: 'TIER C', title: 'OPERADOR CAUTELOSO', tierClass: 'tier-c' };
     }
 
@@ -774,7 +962,7 @@ class WindowsCrasherApp {
     const mins = Math.floor(elapsedSec / 60).toString().padStart(2, '0');
     const secs = (elapsedSec % 60).toString().padStart(2, '0');
     const survivalFormatted = `${mins}:${secs}`;
-    const avgRate = finalScore / Math.max(1, elapsedSec);
+    const avgClickVal = this.totalClicks > 0 ? Math.round(finalScore / this.totalClicks) : 0;
 
     const peakCpu = metrics ? (metrics.peakCpu || this.currentMetrics.peakCpu) : this.currentMetrics.peakCpu;
     const peakRam = metrics ? (metrics.peakRam || this.currentMetrics.peakRam) : this.currentMetrics.peakRam;
@@ -801,7 +989,7 @@ class WindowsCrasherApp {
 
     // 5. Evaluar Rango y Stop Code
     const stopCode = this.deriveStopCode(reason);
-    const rankData = this.evaluatePlayerRank(finalScore, this.peakTabs, elapsedSec, this.totalStressSeconds, avgRate);
+    const rankData = this.evaluatePlayerRank(finalScore, this.peakTabs, elapsedSec, this.totalStressSeconds, this.totalClicks, this.peakCps, avgClickVal);
 
     // Guardar reporte forense conciso para portapapeles
     this.lastCrashReport = {
@@ -811,12 +999,20 @@ class WindowsCrasherApp {
       tier: rankData.tier,
       tierTitle: rankData.title,
       score: finalScore,
+      clicks: this.totalClicks,
+      peakCps: `${this.peakCps.toFixed(1)} CPS`,
+      avgClickVal: `${avgClickVal.toLocaleString()} pts/clic`,
       tabs: this.peakTabs,
-      stressRate: `${Math.round(avgRate)} pts/s`,
       survivalTime: survivalFormatted,
       peakCpu: `${peakCpu}%`,
       peakRam: `${peakRam}%`,
       freedMB: `${freedMB} MB`,
+      hardware: {
+        cpu: `${this.systemSpecs.cpuModel} (${this.systemSpecs.cpuCores} núcleos)`,
+        ram: `${this.systemSpecs.totalRamGB} GB Total`,
+        gpu: this.systemSpecs.gpuRenderer,
+        os: `${this.systemSpecs.platform} (${this.systemSpecs.release})`
+      },
       isNewRecord
     };
 
@@ -833,8 +1029,14 @@ class WindowsCrasherApp {
     const tierTitleEl = document.getElementById('bsod-tier-title');
     if (tierTitleEl) tierTitleEl.textContent = rankData.title;
 
+    const clicksEl = document.getElementById('modal-clicks');
+    if (clicksEl) clicksEl.textContent = this.totalClicks.toLocaleString();
+
+    const peakCpsEl = document.getElementById('modal-peak-cps');
+    if (peakCpsEl) peakCpsEl.textContent = `${this.peakCps.toFixed(1)} CPS`;
+
     const stressRateEl = document.getElementById('modal-stress-rate');
-    if (stressRateEl) stressRateEl.textContent = `${Math.round(avgRate)} pts/s`;
+    if (stressRateEl) stressRateEl.textContent = `${avgClickVal.toLocaleString()} pts/clic`;
 
     const tabsEl = document.getElementById('modal-tabs');
     if (tabsEl) tabsEl.textContent = this.peakTabs;
@@ -848,11 +1050,21 @@ class WindowsCrasherApp {
     const peakCpuEl = document.getElementById('modal-peak-cpu');
     if (peakCpuEl) peakCpuEl.textContent = `${peakCpu}%`;
 
-    const freedEl = document.getElementById('modal-freed-ram');
-    if (freedEl) freedEl.textContent = `${freedMB} MB`;
-
     const stopcodeEl = document.getElementById('bsod-stopcode');
     if (stopcodeEl) stopcodeEl.textContent = stopCode;
+
+    // Componentes del dispositivo detectados en BSOD
+    const hwCpuEl = document.getElementById('bsod-hw-cpu');
+    if (hwCpuEl) hwCpuEl.textContent = `${this.systemSpecs.cpuModel} (${this.systemSpecs.cpuCores} núcleos)`;
+
+    const hwRamEl = document.getElementById('bsod-hw-ram');
+    if (hwRamEl) hwRamEl.textContent = `${this.systemSpecs.totalRamGB} GB Total (Pico sesión: ${peakRam}%)`;
+
+    const hwGpuEl = document.getElementById('bsod-hw-gpu');
+    if (hwGpuEl) hwGpuEl.textContent = this.systemSpecs.gpuRenderer;
+
+    const hwOsEl = document.getElementById('bsod-hw-os');
+    if (hwOsEl) hwOsEl.textContent = `${this.systemSpecs.platform} (${this.systemSpecs.release})`;
 
     // 7. Mostrar modal BSOD
     const modal = document.getElementById('game-over-modal');
@@ -865,17 +1077,24 @@ class WindowsCrasherApp {
     if (!this.lastCrashReport) return;
     const r = this.lastCrashReport;
     const text = [
-      `WINDOWS CRASHER [${r.version}] - INFORME BSOD`,
-      `=============================================`,
+      `WINDOWS CRASHER [${r.version}] - INFORME FORENSE BSOD`,
+      `====================================================`,
       `Código de Parada: ${r.stopCode}`,
       `Nivel Alcanzado:  ${r.tier} (${r.tierTitle})`,
-      `Puntuación:       ${r.score.toLocaleString()} PTS ${r.isNewRecord ? '[¡RÉCORD!]' : ''}`,
-      `Tasa de Estrés:   ${r.stressRate}`,
-      `Pestañas:         ${r.tabs}`,
+      `Puntuación Clics: ${r.score.toLocaleString()} PTS ${r.isNewRecord ? '[¡RÉCORD!]' : ''}`,
+      `Clics Totales:    ${r.clicks} (Cadencia Máx: ${r.peakCps})`,
+      `Valor Medio Clic: ${r.avgClickVal}`,
+      `Pestañas Pico:    ${r.tabs}`,
       `Supervivencia:    ${r.survivalTime}`,
       `Picos de Carga:   RAM ${r.peakRam} | CPU ${r.peakCpu}`,
       `RAM Liberada:     ${r.freedMB}`,
-      `=============================================`
+      `----------------------------------------------------`,
+      `COMPONENTES DEL DISPOSITIVO:`,
+      `• CPU: ${r.hardware.cpu}`,
+      `• RAM: ${r.hardware.ram}`,
+      `• GPU: ${r.hardware.gpu}`,
+      `• SO:  ${r.hardware.os}`,
+      `====================================================`
     ].join('\n');
 
     navigator.clipboard.writeText(text).then(() => {
@@ -901,6 +1120,12 @@ class WindowsCrasherApp {
     this.score = 0;
     this.tabsCount = 0;
     this.peakTabs = 0;
+    this.totalClicks = 0;
+    this.peakClickValue = 10;
+    this.recentClicksTimestamps = [];
+    this.peakCps = 0;
+    this.currentCps = 0;
+
     this.baseMultiplier = 1.0;
     this.currentRiskMultiplier = 1.0;
     this.streakMultiplier = 1.0;
@@ -950,11 +1175,18 @@ class WindowsCrasherApp {
     document.getElementById('tabs-count-display').textContent = '0';
     document.getElementById('survival-time').textContent = '00:00';
 
-    const flowEl = document.getElementById('flow-rate-display');
-    if (flowEl) {
-      flowEl.textContent = '+0';
-      flowEl.className = 'flow-val';
+    const clicksEl = document.getElementById('total-clicks-display');
+    if (clicksEl) clicksEl.textContent = '0';
+
+    const cpsEl = document.getElementById('cps-display');
+    if (cpsEl) cpsEl.textContent = '(0.0)';
+
+    const clickValEl = document.getElementById('click-value-display');
+    if (clickValEl) {
+      clickValEl.textContent = '+10';
+      clickValEl.className = 'flow-val';
     }
+
     const streakBadge = document.getElementById('streak-badge');
     if (streakBadge) {
       streakBadge.textContent = 'x1.0 BASE';

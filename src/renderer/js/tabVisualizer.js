@@ -1,4 +1,4 @@
-// Motor de renderizado visual interactivo de procesos, pestañas y multiplicadores - v1.6.0
+// Motor de renderizado visual interactivo de procesos, pestañas y multiplicadores - v1.7.0
 class SystemChaosVisualizer {
   constructor(canvasElement) {
     this.canvas = canvasElement;
@@ -95,6 +95,31 @@ class SystemChaosVisualizer {
           });
         }
       }
+  triggerPulse(e) {
+    if (!this.canvas) return;
+    const rect = this.canvas.getBoundingClientRect();
+    let x = this.width / 2;
+    let y = this.height / 2;
+
+    if (e && typeof e.clientX === 'number' && e.clientX >= rect.left && e.clientX <= rect.right) {
+      x = e.clientX - rect.left;
+      y = e.clientY - rect.top;
+    }
+
+    // Generar partículas eléctricas de overclock cyan/verde
+    for (let i = 0; i < 16; i++) {
+      const angle = (Math.PI * 2 * i) / 16 + (Math.random() * 0.2);
+      const speed = 2.0 + Math.random() * 4.0;
+      this.particles.push({
+        x: x,
+        y: y,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        radius: 2.5 + Math.random() * 2.5,
+        color: Math.random() > 0.4 ? '#00f0ff' : '#00ff88',
+        alpha: 1.0,
+        decay: 0.045
+      });
     }
   }
 
