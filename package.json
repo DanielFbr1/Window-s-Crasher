@@ -1,6 +1,6 @@
 {
   "name": "windows-crasher",
-  "version": "2.4.0",
+  "version": "2.5.0",
   "description": "Videojuego incremental y de benchmarking de hardware con Watchdog de seguridad",
   "main": "src/main/main.js",
   "scripts": {
@@ -8,7 +8,9 @@
     "pack": "electron-builder --dir",
     "dist": "electron-builder",
     "dist:win": "electron-builder --win",
-    "dist:portable": "electron-builder --win portable"
+    "dist:portable": "electron-builder --win portable",
+    "cap:sync": "cap sync android",
+    "cap:open": "cap open android"
   },
   "keywords": [
     "benchmark",
@@ -20,6 +22,9 @@
   "author": "DanielFbr1",
   "license": "MIT",
   "devDependencies": {
+    "@capacitor/android": "^8.5.1",
+    "@capacitor/cli": "^8.5.1",
+    "@capacitor/core": "^8.5.1",
     "electron": "^34.2.0",
     "electron-builder": "^26.15.3"
   },

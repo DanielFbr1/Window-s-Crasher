@@ -28,6 +28,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // Obtener especificaciones reales del hardware
   getSystemSpecs: () => ipcRenderer.invoke('get-system-specs'),
 
+  // Abrir enlaces externos de forma segura
+  openExternal: (url) => {
+    ipcRenderer.send('open-external', url);
+  },
+
   // Obtener versión de la app
-  getVersion: () => 'v1.7.0'
+  getVersion: () => 'v2.5.0'
 });

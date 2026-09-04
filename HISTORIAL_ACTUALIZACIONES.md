@@ -2,6 +2,32 @@
 
 Este documento mantiene un registro cronológico de todas las versiones, modificaciones y mejoras implementadas en el proyecto para facilitar el contexto y seguimiento a usuarios y agentes.
 
+## [v2.5.0] - 2026-09-04
+### Integración del Modelo de Donaciones Ko-fi e Implementación de Soporte Nativo para Android (Capacitor)
+- **Integración del Modelo "Pay What You Want" / Donaciones con Ko-fi**:
+  - **Botón Directo en la Cabecera**: Se agregó un botón temático `☕ Ko-fi` en la barra superior del dashboard (`#btn-kofi`), estilizado con efectos de hover dorados/ámbar y microinteracciones.
+  - **Botón de Apoyo en Pantalla BSOD (Game Over)**: Integrado el botón `☕ APOYAR EN KO-FI` en la pantalla de informe de colapso (`#btn-kofi-bsod`) junto al botón de reinicio, permitiendo a los jugadores felicitar o apoyar al creador tras finalizar una partida de benchmark.
+  - **Apertura Externa Segura Multiplataforma**:
+    - En **Electron**, se utiliza el nuevo canal IPC `'open-external'` en `main.js` y `preload.js` vía `shell.openExternal()`.
+    - En **Navegador web / Android móvil**, se utiliza `window.open(url, '_blank')` de forma transparente.
+    - URL enlazada configurada: `https://ko-fi.com/danielfbr`.
+- **Soporte Nativo y Despliegue para Android (Capacitor)**:
+  - **Integración de Capacitor Core, CLI y Android Engine**:
+    - Incorporación de dependencias `@capacitor/core`, `@capacitor/cli` y `@capacitor/android`.
+    - Configuración en [capacitor.config.json](file:///c:/Users/VALIMANA/Desktop/Proyectos/Window's%20Crasher/capacitor.config.json) con identificador `com.danielfbr.windowscrasher` y directorio web `src/renderer`.
+    - Generación completa del proyecto nativo Android con Gradle en el directorio `android/`.
+  - **Motor Autónomo de Telemetría y Watchdog para Móviles/Web ([app.js](file:///c:/Users/VALIMANA/Desktop/Proyectos/Window's%20Crasher/src/renderer/js/app.js))**:
+    - Debido a que en Android no existen las APIs del sistema operativo de Node.js (`os.freemem`, etc.), se implementó un bucle independiente `startStandaloneTelemetryLoop()` a 250ms.
+    - Simula y refleja en tiempo real el consumo de RAM (partiendo de 4GB base y escalando con `ramEater` y `tabsCount`), la CPU (oscilando dinámicamente con `cpuMelter`), y la telemetría real de `gpuBurner` mediante WebGL.
+    - Ejecuta el **Watchdog Engine** idéntico al de escritorio: si la RAM supera el 90.0%, la CPU el 95.0% o la GPU el 90.0% durante más de 2.5s continuos, desencadena el BSOD de Game Over con análisis de causa raíz.
+  - **Nuevos Scripts npm para Android**:
+    - `npm run cap:sync`: Sincroniza automáticamente los archivos web de `src/renderer` dentro del proyecto Android nativo.
+    - `npm run cap:open`: Abre el proyecto Android nativo en Android Studio listo para conectar un teléfono físico o emulador y generar el APK (`Build > Build Bundle(s) / APK(s) > Build APK(s)`).
+- **Sincronización Global de Versión v2.5.0**:
+  - Versión elevada a **`v2.5.0`** en `package.json`, `index.html`, `app.js`, `gpuBurner.js`, `gauges.js`, `main.js`, `preload.js`, `tauri.conf.json`, `src-tauri/Cargo.toml` y `start.bat`.
+
+---
+
 ## [v2.4.0] - 2026-09-04
 ### Configuración de Compilación y Distribución de Ejecutables con Electron-Builder
 - **Soporte Completo de Empaquetado en [package.json](file:///c:/Users/VALIMANA/Desktop/Proyectos/Window's%20Crasher/package.json)**:

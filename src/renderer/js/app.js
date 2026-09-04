@@ -1,7 +1,7 @@
-// Controlador principal del juego y lógica de benchmarking - Windows Crasher v2.4.0
+// Controlador principal del juego y lógica de benchmarking - Windows Crasher v2.5.0
 class WindowsCrasherApp {
   constructor() {
-    this.appVersion = 'v2.4.0';
+    this.appVersion = 'v2.5.0';
     this.score = 0;
     this.tabsCount = 0;
     this.peakTabs = 0;
@@ -225,6 +225,21 @@ class WindowsCrasherApp {
       });
     }
 
+    // Botones de Donación / Ko-fi (Cabecera y Pantalla de Game Over)
+    const handleKofiClick = () => {
+      this.recordUserActivity();
+      const kofiUrl = 'https://ko-fi.com/danielfbr';
+      if (window.electronAPI && typeof window.electronAPI.openExternal === 'function') {
+        window.electronAPI.openExternal(kofiUrl);
+      } else {
+        window.open(kofiUrl, '_blank');
+      }
+    };
+    const btnKofi = document.getElementById('btn-kofi');
+    if (btnKofi) btnKofi.addEventListener('click', handleKofiClick);
+    const btnKofiBsod = document.getElementById('btn-kofi-bsod');
+    if (btnKofiBsod) btnKofiBsod.addEventListener('click', handleKofiClick);
+
     // Toggle All Multipliers (Botón Maestro)
     const btnAllMults = document.getElementById('btn-toggle-all-mults');
     if (btnAllMults) {
@@ -393,15 +408,23 @@ class WindowsCrasherApp {
   }
 
   triggerPanic() {
-    if (window.electronAPI && !this.isGameOver) {
+    if (!this.isGameOver) {
       this.soundFx.playGameOver();
-      window.electronAPI.triggerPanic();
+      if (window.electronAPI) {
+        window.electronAPI.triggerPanic();
+      } else {
+        this.triggerGameOver('ABORTO MANUAL DE EMERGENCIA (Botón de Pánico)', {
+          peakCpu: this.currentMetrics.cpuPercent,
+          peakRam: this.currentMetrics.ramPercent
+        });
+      }
     }
   }
 
   setupIPC() {
     if (!window.electronAPI) {
-      console.warn('[App] electronAPI no detectado, funcionando en modo navegador de prueba');
+      console.log('[App] electronAPI no detectado: iniciando Motor de Telemetría y Watchdog Standalone (Android/Web)');
+      this.startStandaloneTelemetryLoop();
       return;
     }
 
@@ -455,6 +478,110 @@ class WindowsCrasherApp {
     window.electronAPI.onGameOver((data) => {
       this.triggerGameOver(data.reason, data.metrics);
     });
+  }
+
+  // Motor de Telemetría y Watchdog Standalone (Para Android con Capacitor o navegador Web)
+  startStandaloneTelemetryLoop() {
+    if (this.standaloneTelemetryInterval) {
+      clearInterval(this.standaloneTelemetryInterval);
+    }
+
+    this.sustainedCpuTicks = 0;
+    this.sustainedGpuTicks = 0;
+
+    this.standaloneTelemetryInterval = setInterval(() => {
+      if (this.isGameOver) return;
+
+      const jitterCpu = Math.sin(Date.now() * 0.007) * 1.8;
+      const jitterRam = Math.cos(Date.now() * 0.004) * 0.8;
+
+      // Cálculo de CPU
+      let targetCpu = 12.0 + (this.tabsCount * 0.85);
+      if (this.isCpuMelterActive) {
+        targetCpu = 92.0 + (this.tabsCount * 0.4) + (Math.sin(Date.now() * 0.009) * 2.5);
+      }
+      const cpu = Math.min(99.0, Math.max(5.0, targetCpu + jitterCpu));
+
+      // Cálculo de RAM
+      const totalMemGB = parseFloat(this.systemSpecs.totalRamGB) || 8.0;
+      const totalMemMB = totalMemGB * 1024;
+      const baseUsedMB = totalMemMB * 0.38;
+      const allocatedMB = this.ramEater.getAllocatedMB();
+      const tabsMB = this.tabsCount * this.mbPerTab;
+      const currentUsedMB = baseUsedMB + allocatedMB + tabsMB;
+      const ram = Math.min(99.0, Math.max(10.0, ((currentUsedMB / totalMemMB) * 100) + jitterRam));
+      const freeMemGB = Math.max(0.1, (totalMemMB - currentUsedMB) / 1024).toFixed(1);
+
+      // Cálculo de GPU
+      const gpu = this.gpuBurner ? this.gpuBurner.getGpuLoad(this.tabsCount) : 0;
+
+      const metrics = {
+        cpuPercent: parseFloat(cpu.toFixed(1)),
+        ramPercent: parseFloat(ram.toFixed(1)),
+        gpuPercent: gpu,
+        cores: this.systemSpecs.cpuCores || 8,
+        totalMemGB: totalMemGB.toFixed(1),
+        freeMemGB: freeMemGB,
+        tickDeltaMs: Math.round(250 + (Math.sin(Date.now() * 0.005) * 18)),
+        sustainedCpuSeconds: parseFloat((this.sustainedCpuTicks * 0.25).toFixed(1))
+      };
+
+      this.currentMetrics = { ...this.currentMetrics, ...metrics };
+      if (cpu > (this.currentMetrics.peakCpu || 0)) this.currentMetrics.peakCpu = cpu;
+      if (ram > (this.currentMetrics.peakRam || 0)) this.currentMetrics.peakRam = ram;
+      if (gpu > (this.currentMetrics.peakGpu || 0)) this.currentMetrics.peakGpu = gpu;
+
+      if (this.visualizer) this.visualizer.updateMetrics(metrics);
+      if (this.tabVisualizer) this.tabVisualizer.setMetrics(metrics);
+      this.updateTelemetryUI(metrics);
+
+      // Watchdog 1: Límite de RAM (90.0%)
+      if (ram >= 90.0) {
+        this.triggerGameOver(`Límite crítico de RAM superado (${ram.toFixed(1)}% >= 90.0%)`, {
+          peakCpu: this.currentMetrics.peakCpu,
+          peakRam: Math.max(ram, this.currentMetrics.peakRam || 0),
+          peakGpu: this.currentMetrics.peakGpu
+        });
+        return;
+      }
+
+      // Watchdog 2: Límite de CPU (95.0% sostenido durante 3.0s = 12 ticks)
+      if (cpu >= 95.0) {
+        this.sustainedCpuTicks++;
+        if (this.sustainedCpuTicks >= 12) {
+          this.triggerGameOver(`CPU saturada al 95%+ de forma sostenida (3.0s > 3.0s)`, {
+            peakCpu: Math.max(cpu, this.currentMetrics.peakCpu || 0),
+            peakRam: this.currentMetrics.peakRam,
+            peakGpu: this.currentMetrics.peakGpu
+          });
+          return;
+        }
+      } else {
+        this.sustainedCpuTicks = 0;
+      }
+
+      // Watchdog 3: Límite de GPU (90.0% sostenido durante 2.5s = 10 ticks)
+      if (gpu >= 90.0) {
+        this.sustainedGpuTicks++;
+        if (this.sustainedGpuTicks >= 10) {
+          this.triggerGameOver(`Límite crítico de GPU 3D superado (${gpu.toFixed(1)}% >= 90.0%)`, {
+            peakCpu: this.currentMetrics.peakCpu,
+            peakRam: this.currentMetrics.peakRam,
+            peakGpu: Math.max(gpu, this.currentMetrics.peakGpu || 0)
+          });
+          return;
+        }
+      } else {
+        this.sustainedGpuTicks = 0;
+      }
+
+      // Advertencia sonora si nos acercamos a la zona roja
+      const now = Date.now();
+      if ((ram >= 86 || cpu >= 91 || gpu >= 86) && now - this.lastWarningTime > 2000) {
+        this.lastWarningTime = now;
+        this.soundFx.playWarning();
+      }
+    }, 250);
   }
 
   addTabs(count = 1) {
@@ -1264,9 +1391,11 @@ class WindowsCrasherApp {
     this.updateMultiplierUI();
     this.updateAllocatedRamUI();
 
-    // Solicitar reseteo del Watchdog al proceso backend
+    // Solicitar reseteo del Watchdog al proceso backend o reiniciar simulación standalone
     if (window.electronAPI) {
       window.electronAPI.requestReset();
+    } else {
+      this.startStandaloneTelemetryLoop();
     }
   }
 }

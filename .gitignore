@@ -9,6 +9,13 @@ out/
 # Compilación de Rust / Tauri
 src-tauri/target/
 
+# Compilación de Android
+android/.gradle/
+android/app/build/
+android/build/
+*.apk
+*.aab
+
 # Logs y cachés
 npm-debug.log*
 yarn-debug.log*

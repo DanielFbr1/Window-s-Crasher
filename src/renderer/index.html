@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Windows Crasher - v2.4.0</title>
+  <title>Windows Crasher - v2.5.0</title>
   <link rel="stylesheet" href="styles/dashboard.css" />
 </head>
 <body>
@@ -13,7 +13,7 @@
     <div class="logo-container">
       <span class="logo-icon">⚡</span>
       <h1>WINDOWS CRASHER</h1>
-      <span class="version-badge" id="app-version-badge">v2.4.0</span>
+      <span class="version-badge" id="app-version-badge">v2.5.0</span>
     </div>
 
     <div class="header-status">
@@ -33,6 +33,11 @@
       <!-- Botón de Audio Mute -->
       <button id="btn-audio-toggle" class="btn-header-tool" title="Silenciar / Activar sonido (Atajo: M)">
         🔊
+      </button>
+
+      <!-- Botón de Apoyo Ko-fi / Donación -->
+      <button id="btn-kofi" class="btn-header-kofi" title="Invitar a un café / Apoyar el proyecto (Ko-fi)">
+        ☕ Ko-fi
       </button>
 
       <!-- Umbrales de Seguridad -->
@@ -318,7 +323,7 @@
   <!-- Pie de página con versión explícita y atajos -->
   <footer>
     <div>
-      Windows Crasher Engine • Versión <strong class="text-cyan" id="footer-version-text">v2.4.0</strong>
+      Windows Crasher Engine • Versión <strong class="text-cyan" id="footer-version-text">v2.5.0</strong>
     </div>
     <div class="footer-shortcuts">
       <span><span class="shortcut-pill">ESPACIO</span> +1</span>
@@ -334,7 +339,7 @@
   </footer>
 
   <!-- =====================================================================
-       PANTALLA DE GAME OVER: AUTÉNTICA BSOD MINIMALISTA DE WINDOWS (v2.4.0)
+       PANTALLA DE GAME OVER: AUTÉNTICA BSOD MINIMALISTA DE WINDOWS (v2.5.0)
        ===================================================================== -->
   <div id="game-over-modal" class="modal-overlay">
     <div class="bsod-minimal">
@@ -347,57 +352,51 @@
         El Watchdog de seguridad intervino para evitar el bloqueo irreversible del kernel.
       </div>
 
-      <!-- Puntuación Heroica y Tier -->
-      <div class="bsod-score-tier-row">
-        <div class="bsod-score-display">
-          <span class="bsod-score-label">PUNTUACIÓN</span>
-          <span class="bsod-score-num" id="modal-score">0</span>
-          <span class="bsod-score-pts">PTS</span>
+      <!-- Métricas de la partida: Puntuación, Rango y Resumen -->
+      <div class="bsod-metrics-container">
+        <div class="bsod-metric-row">
+          <span class="bsod-metric-label">PUNTUACIÓN FINAL:</span>
+          <span class="bsod-metric-val" id="bsod-score">0</span>
         </div>
-
-        <div class="bsod-tier-container">
-          <span class="bsod-tier-badge" id="bsod-tier-badge">TIER S</span>
-          <span class="bsod-tier-title" id="bsod-tier-title">DESTRUCTOR DE SILICIO</span>
+        <div class="bsod-metric-row">
+          <span class="bsod-metric-label">RANGO DE OVERCLOCKER:</span>
+          <span class="bsod-metric-val" id="bsod-tier">TIER C</span>
+        </div>
+        <div class="bsod-metric-row">
+          <span class="bsod-metric-label">TIEMPO RESISTIDO:</span>
+          <span class="bsod-metric-val" id="bsod-time">00:00</span>
+        </div>
+        <div class="bsod-metric-row">
+          <span class="bsod-metric-label">MÁX. PESTAÑAS SIMULTÁNEAS:</span>
+          <span class="bsod-metric-val" id="bsod-peak-tabs">0</span>
+        </div>
+        <div class="bsod-metric-row">
+          <span class="bsod-metric-label">RÉCORD HISTÓRICO:</span>
+          <span class="bsod-metric-val" id="bsod-high-score">0</span>
         </div>
       </div>
 
-      <!-- Estadísticas rápidas compactas con Tasa Media de Estrés -->
-      <div class="bsod-quick-stats">
-        <span class="bsod-stat-item">Tasa Media Estrés: <strong id="modal-stress-rate">0 pts/s</strong></span>
-        <span class="bsod-stat-item">Pestañas: <strong id="modal-tabs">0</strong></span>
-        <span class="bsod-stat-item">Supervivencia: <strong id="modal-survival-time">00:00</strong></span>
-        <span class="bsod-stat-item">Pico RAM: <strong id="modal-peak-ram">0%</strong></span>
-        <span class="bsod-stat-item">Pico CPU: <strong id="modal-peak-cpu">0%</strong></span>
-        <span class="bsod-stat-item">Pico GPU: <strong id="modal-peak-gpu">0%</strong></span>
-        <span class="bsod-stat-item">RAM Liberada: <strong id="modal-freed-ram">0 MB</strong></span>
-      </div>
-
-      <!-- Componentes del Dispositivo Detectados -->
-      <div class="bsod-hardware-box">
-        <div class="bsod-hw-title">ESPECIFICACIONES DEL DISPOSITIVO / PERFIL DE HARDWARE:</div>
+      <!-- Diagnóstico y Componentes de Hardware Detectados -->
+      <div class="bsod-hw-specs-card">
+        <div class="bsod-hw-title">COMPONENTES DE TU DISPOSITIVO</div>
         <div class="bsod-hw-grid">
           <div class="bsod-hw-item">
             <span class="bsod-hw-label">Procesador (CPU):</span>
-            <span class="bsod-hw-val" id="bsod-hw-cpu">Detectando procesador...</span>
+            <span class="bsod-hw-val" id="bsod-hw-cpu">Detectando...</span>
           </div>
           <div class="bsod-hw-item">
-            <span class="bsod-hw-label">Memoria RAM:</span>
-            <span class="bsod-hw-val" id="bsod-hw-ram">Detectando memoria...</span>
+            <span class="bsod-hw-label">Memoria RAM Total:</span>
+            <span class="bsod-hw-val" id="bsod-hw-ram">16.0 GB</span>
           </div>
           <div class="bsod-hw-item">
-            <span class="bsod-hw-label">Acelerador Gráfico:</span>
-            <span class="bsod-hw-val" id="bsod-hw-gpu">Detectando GPU...</span>
+            <span class="bsod-hw-label">Tarjeta Gráfica (GPU):</span>
+            <span class="bsod-hw-val" id="bsod-hw-gpu">Detectando...</span>
           </div>
           <div class="bsod-hw-item">
             <span class="bsod-hw-label">Sistema Operativo:</span>
             <span class="bsod-hw-val" id="bsod-hw-os">Windows NT x64</span>
           </div>
         </div>
-      </div>
-
-      <!-- Código de parada directo -->
-      <div class="bsod-stopcode-line">
-        Código de detención: <strong id="bsod-stopcode">WATCHDOG_RAM_OVERFLOW</strong>
       </div>
 
       <!-- Acciones minimalistas -->
@@ -409,6 +408,11 @@
           Copiar Resumen <span class="bsod-shortcut-hint">[C]</span>
         </button>
       </div>
+
+      <!-- Enlace Ko-fi en pantalla Game Over -->
+      <button id="btn-kofi-bsod" class="btn-bsod-kofi" title="Invitar a un café / Apoyar en Ko-fi">
+        ☕ ¿Te gustó quemar silicio? Invítame a un café en Ko-fi
+      </button>
     </div>
   </div>
 

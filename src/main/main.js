@@ -15,7 +15,7 @@ function createWindow() {
     height: 860,
     minWidth: 1000,
     minHeight: 700,
-    title: "Windows Crasher - v2.4.0",
+    title: "Windows Crasher - v2.5.0",
     backgroundColor: '#0a0d14',
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
@@ -110,6 +110,14 @@ app.whenReady().then(() => {
     } catch (err) {
       console.warn('[Main] Error obteniendo especificaciones:', err);
       return null;
+    }
+  });
+
+  // Handler para abrir enlaces externos (Ko-fi, etc.)
+  ipcMain.on('open-external', (event, url) => {
+    if (url && (url.startsWith('https://') || url.startsWith('http://'))) {
+      const { shell } = require('electron');
+      shell.openExternal(url);
     }
   });
 
