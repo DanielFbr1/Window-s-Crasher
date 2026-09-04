@@ -2,6 +2,27 @@
 
 Este documento mantiene un registro cronológico de todas las versiones, modificaciones y mejoras implementadas en el proyecto para facilitar el contexto y seguimiento a usuarios y agentes.
 
+## [v2.0.0] - 2026-09-04
+### Reducción de Límites de Watchdog (CPU 95%, RAM 90%, GPU 90%) y Nueva Filosofía de Puntuación Condicionada a Multiplicadores
+- **Reducción de Límites de Hardware del Watchdog**:
+  - **Límite de CPU**: Reducido de 98.0% a **95.0%** sostenido (`cpuThreshold: 95.0`). Se recalibró [cpuMelter.worker.js](file:///c:/Users/VALIMANA/Desktop/Proyectos/Window's%20Crasher/src/renderer/workers/cpuMelter.worker.js) para que `CPU Melter` alcance entre 94% y 97% de saturación, desafiando activamente el límite en lugar de mantenerse en bucle infinito pasivo.
+  - **Límite de RAM**: Reducido de 92.0% a **90.0%** (`ramThreshold: 90.0`).
+  - **Límite de GPU**: Incorporado formalmente en **90.0%** en [app.js](file:///c:/Users/VALIMANA/Desktop/Proyectos/Window's%20Crasher/src/renderer/js/app.js) (`WATCHDOG_GPU_THERMAL_OVERHEAT`). En [gpuBurner.js](file:///c:/Users/VALIMANA/Desktop/Proyectos/Window's%20Crasher/src/renderer/js/gpuBurner.js), el estrés de raymarching de `GPU Burner` ahora se amplifica según las pestañas abiertas, pudiendo superar el 90% si se acumulan ventanas.
+- **Nueva Filosofía del Sistema de Puntuación**:
+  - **Puntos Fijos por Clic al Añadir Pestañas**:
+    - Al pulsar `+1 PESTAÑA` o `+10 PESTAÑAS`, se otorgan **+50 puntos fijos por pestaña** creada directamente en el momento del clic.
+    - Se elimina el aumento automático pasivo de puntuación generado únicamente por tener pestañas abiertas. Si el usuario no hace clics y no hay multiplicadores activos, la puntuación se congela al 100% (**0 pts/s**).
+  - **Flujo Automático Gated por Multiplicadores**:
+    - La puntuación continua por segundo **SOLO sube de forma automática cuando hay al menos un multiplicador activo** (`CPU Melter`, `RAM Eater` o `GPU Burner`).
+    - **Sinergia Pestañas + Multiplicador (`+abiertas +multiplica`)**: Los multiplicadores activos generan una tasa de puntos proporcional a la cantidad de pestañas abiertas (`tabMultiplier = 1.0 + (tabsCount * 0.65)`). Cuantas más pestañas mantenga vivas el jugador mientras arden los aceleradores, exponencialmente mayor será el ritmo de acumulación.
+- **Reajuste de Razor's Edge y Umbrales Críticos**:
+  - El multiplicador de filo de navaja (`Razor's Edge`) ahora premia surfear la franja del **86.0% al 89.9% de RAM**, **90.0% al 94.9% de CPU** y **85.0% al 89.9% de GPU**.
+  - La línea roja de peligro del osciloscopio en [gauges.js](file:///c:/Users/VALIMANA/Desktop/Proyectos/Window's%20Crasher/src/renderer/js/gauges.js) y la cabecera en [index.html](file:///c:/Users/VALIMANA/Desktop/Proyectos/Window's%20Crasher/src/renderer/index.html) reflejan los nuevos límites del 90% (RAM/GPU) y 95% (CPU).
+- **Sincronización de Versión Mayor v2.0.0**:
+  - Versión elevada a **`v2.0.0`** en `index.html`, `app.js`, `gauges.js`, `main.js`, `package.json`, `tauri.conf.json`, `src-tauri/Cargo.toml` y `start.bat`.
+
+---
+
 ## [v1.9.0] - 2026-09-04
 ### Botón Maestro de Sobrecarga Total (Activar Todos los Multiplicadores), Calibración de Carga de CPU y Blindaje de Estabilidad
 - **Botón Maestro de Sobrecarga Total (`⚡ SOBRECARGA TOTAL [T o 4]`)**:

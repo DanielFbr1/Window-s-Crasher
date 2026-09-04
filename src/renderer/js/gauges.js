@@ -1,4 +1,4 @@
-// Módulo de renderizado de agujas SVG y gráfica de telemetría en tiempo real - v1.9.0 (CPU, RAM y GPU)
+// Módulo de renderizado de agujas SVG y gráfica de telemetría en tiempo real - v2.0.0 (CPU, RAM y GPU)
 class HardwareVisualizer {
   constructor(options = {}) {
     this.historyLength = 60; // 60 puntos (15 segundos a 250ms)
@@ -39,19 +39,19 @@ class HardwareVisualizer {
 
   getColorForPercent(pct, type = 'cpu') {
     if (type === 'ram') {
-      if (pct >= 92) return '#ff0044'; // Zona crítica Watchdog
-      if (pct >= 80) return '#ff5500';
-      if (pct >= 60) return '#ffb700';
+      if (pct >= 90) return '#ff0044'; // Zona crítica Watchdog RAM 90%
+      if (pct >= 78) return '#ff5500';
+      if (pct >= 58) return '#ffb700';
       return '#00ff88';
     } else if (type === 'gpu') {
-      if (pct >= 90) return '#f43f5e'; // Saturación alta GPU
+      if (pct >= 90) return '#ff0044'; // Zona crítica Watchdog GPU 90%
       if (pct >= 75) return '#c084fc';
       if (pct >= 40) return '#a855f7';
       return '#38bdf8';
     } else {
-      if (pct >= 98) return '#ff0044'; // Zona crítica Watchdog
-      if (pct >= 85) return '#ff5500';
-      if (pct >= 60) return '#ffb700';
+      if (pct >= 95) return '#ff0044'; // Zona crítica Watchdog CPU 95%
+      if (pct >= 82) return '#ff5500';
+      if (pct >= 58) return '#ffb700';
       return '#00f0ff';
     }
   }
@@ -138,8 +138,8 @@ class HardwareVisualizer {
       ctx.stroke();
     }
 
-    // Línea de peligro del Watchdog (RAM 92% en rojo punteado)
-    const yWatchdogRam = h - (92 / 100) * h;
+    // Línea de peligro del Watchdog (RAM / GPU 90% en rojo punteado)
+    const yWatchdogRam = h - (90 / 100) * h;
     ctx.strokeStyle = 'rgba(255, 0, 68, 0.55)';
     ctx.setLineDash([4, 4]);
     ctx.beginPath();

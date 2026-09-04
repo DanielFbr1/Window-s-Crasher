@@ -166,10 +166,11 @@ class GpuBurner {
 
   getGpuLoad(tabCount = 0) {
     if (this.isActive) {
-      // GPU Burner activo: sobrecarga masiva de raymarching
-      const jitter = Math.sin(Date.now() * 0.006) * 2.5;
-      const baseBurn = 88.0 + Math.min(8.0, (this.lastFrameDurationMs || 2.0) * 1.8);
-      this.estimatedGpuLoad = Math.min(98.5, Math.max(82.0, baseBurn + jitter));
+      // GPU Burner activo: sobrecarga masiva de raymarching amplificada por pestañas activas
+      const jitter = Math.sin(Date.now() * 0.006) * 2.0;
+      const tabExtra = Math.min(14.0, tabCount * 0.75); // Cada pestaña virtual suma cómputo gráfico
+      const baseBurn = 86.5 + Math.min(6.0, (this.lastFrameDurationMs || 2.0) * 1.5);
+      this.estimatedGpuLoad = Math.min(99.0, Math.max(82.0, baseBurn + tabExtra + jitter));
     } else {
       // Carga base según pestañas y composición de ventanas
       const tabLoad = Math.min(25.0, tabCount * 0.8);

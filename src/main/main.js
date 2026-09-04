@@ -15,7 +15,7 @@ function createWindow() {
     height: 860,
     minWidth: 1000,
     minHeight: 700,
-    title: "Windows Crasher - v1.9.0",
+    title: "Windows Crasher - v2.0.0",
     backgroundColor: '#0a0d14',
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
@@ -46,9 +46,9 @@ function createWindow() {
 app.whenReady().then(() => {
   hardwareMonitor = new HardwareMonitor({
     intervalMs: 250,
-    ramThreshold: 92.0,
-    cpuThreshold: 98.0,
-    cpuSustainedLimitTicks: 16, // 4.0s a 250ms
+    ramThreshold: 90.0, // Límite de RAM bajado a 90%
+    cpuThreshold: 95.0, // Límite de CPU bajado a 95%
+    cpuSustainedLimitTicks: 12, // 3.0s a 250ms
     watchdogLagThresholdMs: 600
   });
 

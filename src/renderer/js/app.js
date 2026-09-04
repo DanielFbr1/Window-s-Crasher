@@ -1,14 +1,14 @@
-// Controlador principal del juego y lógica de benchmarking - Windows Crasher v1.9.0
+// Controlador principal del juego y lógica de benchmarking - Windows Crasher v2.0.0
 class WindowsCrasherApp {
   constructor() {
-    this.appVersion = 'v1.9.0';
+    this.appVersion = 'v2.0.0';
     this.score = 0;
     this.tabsCount = 0;
     this.peakTabs = 0;
     this.baseMultiplier = 1.0;
     this.currentRiskMultiplier = 1.0;
     this.streakMultiplier = 1.0;
-    this.razorEdgeMultiplier = 1.0;  // Multiplicador de habilidad al surfear el límite del 92%
+    this.razorEdgeMultiplier = 1.0;  // Multiplicador de habilidad al surfear el límite del 90% (RAM/GPU) y 95% (CPU)
     this.riskZoneName = '';
     this.gameStartTime = Date.now();
     this.isGameOver = false;
@@ -426,10 +426,25 @@ class WindowsCrasherApp {
       }
       this.updateTelemetryUI(combinedMetrics);
 
-      // Reproducir sonido de advertencia si nos acercamos a la zona roja
+      // Vigilancia activa del límite de GPU (90.0% sostenido durante 2.5s)
+      if (!this.isGameOver && gpu >= 90.0) {
+        this.sustainedGpuTicks = (this.sustainedGpuTicks || 0) + 1;
+        if (this.sustainedGpuTicks >= 10) { // 10 * 250ms = 2.5s continuos
+          this.triggerGameOver(`Límite crítico de GPU 3D superado (${gpu.toFixed(1)}% >= 90.0%)`, {
+            peakCpu: this.currentMetrics.peakCpu,
+            peakRam: this.currentMetrics.peakRam,
+            peakGpu: Math.max(gpu, this.currentMetrics.peakGpu || 0)
+          });
+          return;
+        }
+      } else {
+        this.sustainedGpuTicks = 0;
+      }
+
+      // Reproducir sonido de advertencia si nos acercamos a la zona roja (RAM 86%, CPU 91%, GPU 86%)
       if (!this.isGameOver) {
         const now = Date.now();
-        if ((metrics.ramPercent >= 88 || metrics.cpuPercent >= 95 || gpu >= 92) && now - this.lastWarningTime > 2000) {
+        if ((metrics.ramPercent >= 86 || metrics.cpuPercent >= 91 || gpu >= 86) && now - this.lastWarningTime > 2000) {
           this.lastWarningTime = now;
           this.soundFx.playWarning();
         }
@@ -457,11 +472,9 @@ class WindowsCrasherApp {
       this.ramEater.allocateChunkMB(this.mbPerTab);
     }
 
-    // Puntuación inmediata por click que escala con la dificultad actual y racha de estrés
-    const difficultyScaling = 1 + Math.pow(this.tabsCount / 8, 1.25);
-    const clickMultiplier = this.baseMultiplier * this.currentRiskMultiplier * this.streakMultiplier * this.scoreFreqMultiplier;
-    const instantClickPoints = Math.round(count * 20 * difficultyScaling * clickMultiplier);
-    this.score += instantClickPoints;
+    // Puntuación fija por click al abrir pestañas (+50 pts fijos por pestaña abierta)
+    const fixedPointsPerTab = 50;
+    this.score += (count * fixedPointsPerTab);
 
     // Disparar animación de ventanas virtuales en el viewport central
     if (this.tabVisualizer) {
@@ -521,14 +534,14 @@ class WindowsCrasherApp {
 
   startCpuWorkers(count) {
     this.stopCpuWorkers();
-    // Dejar al menos 1 hilo disponible para el Watchdog y sistema operativo para evitar falsos positivos
-    const workerCount = Math.max(1, Math.min(count - 1, 8));
+    // Desplegar workers intensivos calibrados para alcanzar el límite del 95% de CPU
+    const workerCount = Math.max(2, Math.min(count, 12));
     for (let i = 0; i < workerCount; i++) {
       const worker = new Worker('workers/cpuMelter.worker.js');
       worker.postMessage({ action: 'start', id: i });
       this.cpuWorkers.push(worker);
     }
-    console.log(`[CPU Melter] Desplegados ${this.cpuWorkers.length} workers intensivos (reserva de 1 hilo kernel)`);
+    console.log(`[CPU Melter] Desplegados ${this.cpuWorkers.length} workers intensivos (capacidad de desafiar el 95% de CPU)`);
   }
 
   stopCpuWorkers() {
@@ -697,11 +710,11 @@ class WindowsCrasherApp {
         gpuEl.textContent = `${gpu.toFixed(1)}%`;
       }
 
-      // Evaluación dinámica del multiplicador de riesgo base (CPU, RAM y GPU)
-      if (ram >= 88 || cpu >= 95 || gpu >= 92) {
+      // Evaluación dinámica del multiplicador de riesgo base (Límites: RAM 90%, CPU 95%, GPU 90%)
+      if (ram >= 86 || cpu >= 92 || gpu >= 86) {
         this.currentRiskMultiplier = 2.5;
         this.riskZoneName = 'ZONA CRÍTICA';
-      } else if (ram >= 80 || cpu >= 90 || gpu >= 85) {
+      } else if (ram >= 78 || cpu >= 85 || gpu >= 78) {
         this.currentRiskMultiplier = 1.5;
         this.riskZoneName = 'ALTO RIESGO';
       } else {
@@ -709,16 +722,16 @@ class WindowsCrasherApp {
         this.riskZoneName = '';
       }
 
-      // MECÁNICA RAZOR'S EDGE: Al filo del colapso (RAM 92%, CPU 98% o GPU 90%+)
-      if (ram >= 89.0 && ram < 92.0) {
-        const proximity = (ram - 89.0) / 3.0;
+      // MECÁNICA RAZOR'S EDGE: Al filo del colapso (RAM 90%, CPU 95% o GPU 90%)
+      if (ram >= 86.0 && ram < 90.0) {
+        const proximity = (ram - 86.0) / 4.0;
         this.razorEdgeMultiplier = 1.0 + (proximity * 2.5);
-      } else if (cpu >= 94.0 && cpu < 98.0) {
-        const proximity = (cpu - 94.0) / 4.0;
+      } else if (cpu >= 90.0 && cpu < 95.0) {
+        const proximity = (cpu - 90.0) / 5.0;
         this.razorEdgeMultiplier = 1.0 + (proximity * 2.0);
-      } else if (gpu >= 90.0) {
-        const proximity = (gpu - 90.0) / 8.0;
-        this.razorEdgeMultiplier = 1.0 + Math.min(1.5, proximity * 1.5);
+      } else if (gpu >= 85.0 && gpu < 90.0) {
+        const proximity = (gpu - 85.0) / 5.0;
+        this.razorEdgeMultiplier = 1.0 + (proximity * 2.0);
       } else {
         this.razorEdgeMultiplier = 1.0;
       }
@@ -758,11 +771,11 @@ class WindowsCrasherApp {
       }
 
       // GESTIÓN DE RACHA Y TIEMPO BAJO ESTRÉS (Solo avanza con actividad o peligro real)
-      if ((ram >= 78 || cpu >= 88 || gpu >= 85) && idleSec <= 5.0) {
+      if ((ram >= 76 || cpu >= 85 || gpu >= 80) && idleSec <= 5.0) {
         this.stressStreakSeconds += 0.1;
         this.highStressSeconds += 0.1;
         this.totalStressSeconds += 0.1;
-      } else if (idleSec > 5.0 || (ram < 68 && cpu < 75 && gpu < 60)) {
+      } else if (idleSec > 5.0 || (ram < 65 && cpu < 70 && gpu < 55)) {
         this.stressStreakSeconds = Math.max(0, this.stressStreakSeconds - 0.25);
       }
 
@@ -785,14 +798,26 @@ class WindowsCrasherApp {
         this.streakMultiplier = 1.0;
       }
 
-      // Si el jugador está completamente AFK (0 pestañas y sin multiplicadores), flujo = 0 absoluto
-      if (this.tabsCount === 0 && activeMultCount === 0) {
+      // REGLA DE PUNTUACIÓN AUTOMÁTICA:
+      // Si NO hay multiplicadores activos, el flujo es 0 absoluto (solo suben puntos al hacer click).
+      // Solo sube la puntuación automáticamente cuando hay algún multiplicador activado.
+      // El multiplicador genera más puntos según las pestañas que haya abiertas (+abiertas +multiplica).
+      if (activeMultCount === 0) {
         this.currentFlowRate = 0;
       } else {
+        // Potencia combinada de multiplicadores activos (CPU 3.0x, RAM 2.5x, GPU 2.0x)
+        const multPower = (this.isCpuMelterActive ? 3.0 : 0) +
+                          (this.isRamEaterActive ? 2.5 : 0) +
+                          (this.gpuBurner && this.gpuBurner.isActive ? 2.0 : 0);
+
+        // Las pestañas abiertas multiplican directamente la generación de puntos:
+        const tabMultiplier = 1.0 + (this.tabsCount * 0.65);
+
         // Densidad de hardware incluyendo GPU (CPU + RAM + GPU 3D)
-        const loadNorm = (cpu + ram + (gpu * 1.2)) / 220;
-        const stressDensityFactor = Math.pow(Math.max(0.12, loadNorm), 1.95);
-        const baseActiveIntensity = (this.tabsCount * 18) + (activeMultCount * 45);
+        const loadNorm = (cpu + ram + (gpu * 1.2)) / 215;
+        const stressDensityFactor = Math.pow(Math.max(0.15, loadNorm), 1.95);
+
+        const baseActiveIntensity = 32 * multPower * tabMultiplier;
         const totalFlowRate = baseActiveIntensity * 
                               stressDensityFactor * 
                               this.baseMultiplier * 
@@ -877,24 +902,25 @@ class WindowsCrasherApp {
       deltaEl.style.color = '#00ff88';
     }
 
-    // Advertencia de CPU sostenida
+    // Advertencia de CPU sostenida (Límite 95%)
     const sustainedEl = document.getElementById('sustained-cpu-warning');
     if (sustainedEl) {
       if (metrics.sustainedCpuSeconds > 0) {
         sustainedEl.style.display = 'block';
-        sustainedEl.textContent = `¡ALERTA! CPU al 98%+ sostenida: ${metrics.sustainedCpuSeconds}s / 3.0s`;
+        sustainedEl.textContent = `¡ALERTA! CPU al 95%+ sostenida: ${metrics.sustainedCpuSeconds}s / 3.0s`;
       } else {
         sustainedEl.style.display = 'none';
       }
     }
 
-    // Badge de estado en el viewport central de caos
+    // Badge de estado en el viewport central de caos (RAM 90%, CPU 95%, GPU 90%)
     const chaosBadge = document.getElementById('chaos-status-text');
     if (chaosBadge) {
-      if (metrics.ramPercent >= 88 || metrics.cpuPercent >= 95) {
+      const gpuLoad = this.currentMetrics.gpuPercent || 0;
+      if (metrics.ramPercent >= 86 || metrics.cpuPercent >= 92 || gpuLoad >= 86) {
         chaosBadge.textContent = 'CRÍTICO';
         chaosBadge.style.color = '#ff0044';
-      } else if (metrics.ramPercent >= 80 || metrics.cpuPercent >= 90) {
+      } else if (metrics.ramPercent >= 78 || metrics.cpuPercent >= 85 || gpuLoad >= 78) {
         chaosBadge.textContent = 'PELIGRO';
         chaosBadge.style.color = '#ffb700';
       } else {
@@ -915,6 +941,7 @@ class WindowsCrasherApp {
   // Determina el Stop Code formal de la BSOD
   deriveStopCode(reason) {
     const r = (reason || '').toLowerCase();
+    if (r.includes('gpu')) return 'WATCHDOG_GPU_THERMAL_OVERHEAT';
     if (r.includes('ram')) return 'WATCHDOG_RAM_OVERFLOW';
     if (r.includes('cpu')) return 'CPU_THERMAL_MELTDOWN';
     if (r.includes('delta') || r.includes('congelamiento') || r.includes('jitter')) return 'KERNEL_FREEZE_LATENCY_EXCEEDED';

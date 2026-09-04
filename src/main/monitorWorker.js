@@ -5,9 +5,9 @@ const { performance } = require('perf_hooks');
 // Parámetros de configuración del Watchdog
 const CONFIG = {
   intervalMs: 250,
-  ramThreshold: 92.0,
-  cpuThreshold: 98.0,
-  cpuSustainedLimitTicks: 16, // 16 * 250ms = 4.0s continuos
+  ramThreshold: 90.0,
+  cpuThreshold: 95.0,
+  cpuSustainedLimitTicks: 12, // 12 * 250ms = 3.0s continuos
   watchdogLagThresholdMs: 600
 };
 
@@ -92,14 +92,14 @@ function tick() {
     gameOverReason = `Límite crítico de RAM superado (${ramPercent.toFixed(1)}% >= ${CONFIG.ramThreshold}%)`;
   }
 
-  // C. Saturación sostenida de CPU (>= 98% durante >3s)
+  // C. Saturación sostenida de CPU (>= 95% durante >3s)
   if (cpuPercent >= CONFIG.cpuThreshold) {
     sustainedCpuTicks++;
     alertType = 'CPU';
     if (sustainedCpuTicks >= CONFIG.cpuSustainedLimitTicks) {
       watchdogTriggered = true;
       const seconds = (sustainedCpuTicks * CONFIG.intervalMs / 1000).toFixed(1);
-      gameOverReason = `CPU saturada al 98%+ de forma sostenida (${seconds}s > 3.0s)`;
+      gameOverReason = `CPU saturada al 95%+ de forma sostenida (${seconds}s > 3.0s)`;
     }
   } else {
     sustainedCpuTicks = 0;
