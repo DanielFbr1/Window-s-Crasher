@@ -1,0 +1,21 @@
+{
+  "name": "windows-crasher",
+  "version": "1.3.0",
+  "description": "Videojuego incremental y de benchmarking de hardware con Watchdog de seguridad",
+  "main": "src/main/main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "keywords": [
+    "benchmark",
+    "game",
+    "stress-test",
+    "electron",
+    "hardware-monitor"
+  ],
+  "author": "Antigravity Senior Developer",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^34.2.0"
+  }
+}
